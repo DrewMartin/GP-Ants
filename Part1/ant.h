@@ -3,6 +3,9 @@
 
 #include "entity.h"
 #include "cell.h"
+#include <QList>
+
+#define NORMALIZE_POINT(p) p.setX((p.x() + MAX_X) % MAX_X); p.setY((p.y() + MAX_Y) % MAX_Y)
 
 class Ant : public Entity
 {
@@ -13,7 +16,7 @@ public:
     virtual QGraphicsItem *getGraphicsItem();
     virtual void reset();
 
-    bool update(Cell cells[MAX_Y][MAX_Y]);
+    bool update(QList<QList<Cell> > &cells);
     Direction getDirection() const;
     QPoint getFoodSource();
 
@@ -22,7 +25,6 @@ private:
     void moveTo(QPoint &p);
     void moveTowards(const QPoint &p);
     void moveRandom();
-    bool isValidPoint(QPoint &p);
     QPoint pointAfterForwardMove(Direction dir);
 
     const QPoint initialLocation;

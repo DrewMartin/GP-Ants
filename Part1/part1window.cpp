@@ -10,9 +10,19 @@ Part1Window::Part1Window(QWidget *parent) :
 {
     running = false;
     ui->setupUi(this);
-    ui->graphicsView->scale(5, 5);
+    ui->graphicsView->scale(SCALE, SCALE);
+
+    QPoint loc;
+    QList<Cell> thisRow;
+    for (int row = 0; row < MAX_Y; row++) {
+        thisRow = QList<Cell>();
+        for (int col = 0; col < MAX_X; col++) {
+            loc = QPoint(col, row);
+            thisRow.append(Cell(loc));
+        }
+        cells.append(thisRow);
+    }
     clear();
-    ui->graphicsView->set
 
     ui->foodCountSlider->setMaximum(MAX_FOOD);
     ui->foodCountSlider->setValue(MAX_FOOD/2);
@@ -69,6 +79,7 @@ void Part1Window::clear()
             cells[j][i].setScent(sq(MAX_X) - sqDistance(MAX_X/2, MAX_Y/2, j, i));
         }
     }
+
     ants.clear();
     food.clear();
     scene = QSharedPointer<QGraphicsScene>(new QGraphicsScene(0, 0, MAX_X, MAX_Y));
@@ -103,6 +114,9 @@ void Part1Window::start()
     pheremones.clear();
     QSP<Ant> ant;
     QPoint p;
+
+    double decay = ui->decaySlider->value() / 100.0;
+    Cell::setDecay(decay);
     for (int i = 0; i < ui->antCountSlider->value(); i++) {
         p = QPoint(MAX_X/2, MAX_Y/2);
         ant = QSP<Ant>(new Ant(p));
@@ -167,10 +181,7 @@ void Part1Window::updateLoop()
     QTime timer;
     timer.start();
     int pheremoneRadius = ui->pheremoneRadiusSlider->value();
-    double decay = ui->decaySlider->value() / 100.0;
-    int row, col, i, val;
-    QSP<Pheremone> currPheremone;
-    QHash<int, int> pheremonesDone;
+    int row, col, i;
     QPoint loc, locFrom, newLoc;
 
 
@@ -184,13 +195,8 @@ void Part1Window::updateLoop()
             locFrom = ants.at(i)->getFoodSource();
             CIRCLE_LOOP_HELPER(loc.x(), loc.y(), pheremoneRadius) {
                 newLoc = QPoint(col, row);
-                val = 100 - sqDist*100/sqRad;
-                if (pheremonesDone.value(col*MAX_Y+row, 0) < val) {
-                    currPheremone = QSP<Pheremone>(new Pheremone(newLoc, val, 100, decay, locFrom));
-                    if (cells[row][col].addPheremone(currPheremone))
-                        scene->addItem(currPheremone->getGraphicsItem());
-                    pheremonesDone.insert(col*MAX_Y+row, val);
-                }
+                if (!cells[row][col].addPheremone(100 - sqDist*100/sqRad))
+                    scene->addItem(cells[row][col].getGraphicsItem());
             }
         }
     }

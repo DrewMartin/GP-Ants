@@ -11,6 +11,7 @@ Food::Food(QPoint &location, int quantity) :
     ellipse = new QGraphicsEllipseItem(LOC_HELPER(location, FOOD_RAD));
     ellipse->setPen(QPen(QColor(0, 0, 0, 0)));
     ellipse->setFlag(QGraphicsItem::ItemClipsToShape);
+    ellipse->setZValue(1);
     redraw();
 }
 

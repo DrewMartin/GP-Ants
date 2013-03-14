@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QPoint>
 #include <QSharedPointer>
+#include <QList>
 
 #include "constants.h"
 #include "food.h"
@@ -51,7 +52,7 @@ private:
     QList<QSP<Food> > food;
     QList<QSP<Ant> > ants;
     QList<QSP<Pheremone> > pheremones;
-    Cell cells[MAX_Y][MAX_X];
+    QList<QList<Cell> > cells;
     uint lastTime;
     bool running;
 };

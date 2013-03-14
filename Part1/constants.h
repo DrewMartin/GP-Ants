@@ -7,25 +7,37 @@
 
 typedef enum {
     North,
+    NE,
     East,
+    SE,
     South,
-    West
+    SW,
+    West,
+    NW
 } Direction;
 
 inline Direction directionAfterLeftTurn(Direction source) {
     switch(source) {
-    case North: return West;
-    case East: return North;
-    case South: return East;
-    default: return South;
+    case North: return NW;
+    case East: return NE;
+    case South: return SE;
+    case West: return SW;
+    case NE: return North;
+    case SE: return East;
+    case SW: return South;
+    default: return West;
     }
 }
 
 inline Direction directionAfterRightTurn(Direction source) {
     switch(source) {
-    case North: return East;
-    case East: return South;
-    case South: return West;
+    case North: return NE;
+    case East: return SE;
+    case South: return SW;
+    case West: return NW;
+    case NE: return East;
+    case SE: return South;
+    case SW: return West;
     default: return North;
     }
 }
@@ -35,18 +47,22 @@ inline Direction oppositeDirection(Direction source) {
     case North: return South;
     case East: return West;
     case South: return North;
-    default: return East;
+    case West: return East;
+    case NE: return SW;
+    case SE: return NW;
+    case SW: return NE;
+    default: return SE;
     }
 }
 
 
 #define MAX_FOOD 200
-#define MAX_X 100
-#define MAX_Y 100
-#define SCALE 5
+#define MAX_X 50
+#define MAX_Y 50
+#define SCALE 10
 
-#define FOOD_RAD 4
-#define ANTHILL_RAD 7
+#define FOOD_RAD 2
+#define ANTHILL_RAD 3
 #define ANT_RAD 0
 
 #define LOC_HELPER(loc,rad) loc.x()-rad, loc.y()-rad, rad*2+1, rad*2+1

@@ -4,33 +4,44 @@
 #include "food.h"
 #include "pheremone.h"
 
-class Cell
+class Cell : public Entity
 {
 public:
-    Cell();
+    Cell(QPoint &location);
+    virtual ~Cell();
 
     bool hasFood() const;
     bool atAnthill() const;
     bool takeFood();
     int getScent() const;
 
-    bool addPheremone(QSP<Pheremone> pheremone);
+    bool addPheremone(int amount);
     void update();
     void clear();
-    void reset();
+
+    virtual QGraphicsItem *getGraphicsItem();
+    virtual void reset();
 
     bool hasPheremone() const;
-    QSP<Pheremone> getPheremone();
+    int getPheremone();
 
     void setAnthill();
     void setFood(QSP<Food> food);
     void setScent(int val);
 
+    static void setDecay(double decay);
+
 private:
+    void redraw();
+
     QSP<Food> food;
-    QSP<Pheremone> pheremone;
     bool anthill;
+    QColor color;
     int scent;
+    int pheromone;
+    QGraphicsRectItem *rect;
+
+    static double decay;
 };
 
 #endif // CELL_H

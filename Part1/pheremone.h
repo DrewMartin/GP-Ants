@@ -6,7 +6,7 @@
 class Pheremone : public Entity
 {
 public:
-    Pheremone(QPoint &location, int initialStrength, int maxStrength, double decay, QPoint towards);
+    Pheremone(QPoint &location, int initialStrength, int maxStrength, double decay);
     virtual ~Pheremone();
 
     virtual QGraphicsItem *getGraphicsItem();
@@ -26,7 +26,6 @@ private:
     QColor color;
 //    QRadialGradient gradient;
     QGraphicsRectItem *rect;
-    QPoint towards;
 };
 
 #endif // PHEREMONE_H

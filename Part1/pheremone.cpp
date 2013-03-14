@@ -1,12 +1,11 @@
 #include "pheremone.h"
 
-Pheremone::Pheremone(QPoint &location, int initialStrength, int maxStrength, double decay, QPoint towards) :
+Pheremone::Pheremone(QPoint &location, int initialStrength, int maxStrength, double decay) :
     Entity(location),
     strength(initialStrength),
     maxStrength(maxStrength),
     decayRate(decay),
-    color(0,255,0),
-    towards(towards)
+    color(0,255,0)
 {
     rect = new QGraphicsRectItem(location.x(), location.y(), 1, 1);
     rect->setFlag(QGraphicsItem::ItemClipsToShape);
@@ -42,10 +41,6 @@ bool Pheremone::isAlive()
     return strength > 0;
 }
 
-QPoint Pheremone::getDestination() const
-{
-    return towards;
-}
 
 int Pheremone::getStrength() const
 {

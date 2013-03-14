@@ -1,9 +1,23 @@
 #include "cell.h"
 
-Cell::Cell() :
+double Cell::decay = 0.9;
+
+Cell::Cell(QPoint &location) :
+    Entity(location),
     anthill(false),
-    scent(0)
+    color(255,255,255),
+    scent(0),
+    pheromone(0),
+    rect(NULL)
 {
+}
+
+Cell::~Cell()
+{
+    if (rect) {
+        delete rect;
+        rect = NULL;
+    }
 }
 
 bool Cell::hasFood() const
@@ -30,44 +44,65 @@ int Cell::getScent() const
     return scent;
 }
 
-bool Cell::addPheremone(QSharedPointer<Pheremone> otherPheremone)
+bool Cell::addPheremone(int amount)
 {
-    if (pheremone.isNull() || pheremone->getStrength() < otherPheremone->getStrength()) {
-        this->pheremone = otherPheremone;
+    if (amount == 0)
         return true;
+    bool hadNoPheromone = pheromone == 0;
+    if (hadNoPheromone) {
+        rect = new QGraphicsRectItem(location.x(), location.y(), 1, 1);
+        rect->setFlag(QGraphicsItem::ItemClipsToShape);
+        rect->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+        rect->setPen(QColor(0,0,0,0));
+        rect->setZValue(-1);
     }
-    return false;
+    pheromone = qMin(100, pheromone + amount);
+    redraw();
+    return !hadNoPheromone;
 }
 
 void Cell::update()
 {
-    if (!pheremone.isNull()) {
-        if (!pheremone->update()) {
-            pheremone = QSP<Pheremone>();
+    if (pheromone > 0) {
+        pheromone *= decay;
+        if (pheromone > 0)
+            redraw();
+        else {
+            delete rect;
+            rect = NULL;
         }
     }
 }
 
 void Cell::clear()
 {
-    pheremone = QSP<Pheremone>();
+    reset();
     anthill = false;
     food = QSP<Food>();
 }
 
+QGraphicsItem *Cell::getGraphicsItem()
+{
+    return rect;
+}
+
 void Cell::reset()
 {
-    pheremone = QSP<Pheremone>();
+    pheromone = 0;
+    if (rect) {
+        delete rect;
+        rect = NULL;
+    }
 }
 
 bool Cell::hasPheremone() const
 {
-    return !pheremone.isNull();
+    return pheromone > 0;
 }
 
-QSP<Pheremone> Cell::getPheremone()
+int Cell::getPheremone()
 {
-    return pheremone;
+    return pheromone;
 }
 
 void Cell::setAnthill()
@@ -83,4 +118,17 @@ void Cell::setFood(QSharedPointer<Food> food)
 void Cell::setScent(int val)
 {
     scent = val;
+}
+
+void Cell::setDecay(double decay)
+{
+    Cell::decay = decay;
+}
+
+void Cell::redraw()
+{
+    int newVal = qMax(0, (100 - pheromone)*255/100);
+    color.setRed(newVal);
+    color.setBlue(newVal);
+    rect->setBrush(QBrush(color));
 }
