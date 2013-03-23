@@ -52,24 +52,31 @@ bool Ant::update(QList<QList<Cell> > &cells)
             ellipse->setPen(QPen(color));
             ellipse->setBrush(QBrush(color));
         } else {
-            int scent, best;
-            QPoint p = pointAfterForwardMove(direction), bestMove = p;
+            double scent, best;
+            QPoint p = pointAfterForwardMove(direction);
             scent = best = cells[p.y()][p.x()].getScent();
 
             p = pointAfterForwardMove(directionAfterLeftTurn(direction));
             scent = cells[p.y()][p.x()].getScent();
             if (scent > best) {
                 best = scent;
-                bestMove = p;
+                direction = directionAfterLeftTurn(direction);
             }
 
             p = pointAfterForwardMove(directionAfterRightTurn(direction));
             scent = cells[p.y()][p.x()].getScent();
             if (scent > best) {
                 best = scent;
-                bestMove = p;
+                direction = directionAfterRightTurn(direction);
             }
-            moveTo(bestMove);
+            int random = qrand() % 100;
+            if (random < 10)
+                direction = directionAfterLeftTurn(direction);
+            else if (random < 20)
+                direction = directionAfterRightTurn(direction);
+
+            p = pointAfterForwardMove(direction);
+            moveTo(p);
 
             return true;
         }

@@ -57,12 +57,12 @@ inline Direction oppositeDirection(Direction source) {
 
 
 #define MAX_FOOD 200
-#define MAX_X 50
-#define MAX_Y 50
-#define SCALE 10
+#define MAX_X 100
+#define MAX_Y 100
+#define SCALE 5
 
-#define FOOD_RAD 2
-#define ANTHILL_RAD 3
+#define FOOD_RAD 4
+#define ANTHILL_RAD 7
 #define ANT_RAD 0
 
 #define LOC_HELPER(loc,rad) loc.x()-rad, loc.y()-rad, rad*2+1, rad*2+1

@@ -76,7 +76,7 @@ void Part1Window::clear()
     for (int i = 0; i < MAX_X; i++) {
         for(int j = 0; j < MAX_Y; j++) {
             cells[j][i].clear();
-            cells[j][i].setScent(sq(MAX_X) - sqDistance(MAX_X/2, MAX_Y/2, j, i));
+            cells[j][i].setScent((sq(MAX_X)/2 - sqDistance(MAX_X/2, MAX_Y/2, j, i))*100.0/sq(MAX_X)/2);
         }
     }
 
@@ -183,7 +183,8 @@ void Part1Window::updateLoop()
     int pheremoneRadius = ui->pheremoneRadiusSlider->value();
     int row, col, i;
     QPoint loc, locFrom, newLoc;
-
+    QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
+    background.fill(Qt::white);
 
     for (row = 0; row < MAX_X; row++)
         for(col = 0; col < MAX_Y; col++)
@@ -195,11 +196,18 @@ void Part1Window::updateLoop()
             locFrom = ants.at(i)->getFoodSource();
             CIRCLE_LOOP_HELPER(loc.x(), loc.y(), pheremoneRadius) {
                 newLoc = QPoint(col, row);
-                if (!cells[row][col].addPheremone(100 - sqDist*100/sqRad))
-                    scene->addItem(cells[row][col].getGraphicsItem());
+                cells[row][col].addPheremone(50 - sqDist*50/sqRad);
             }
         }
     }
+
+    for (row = 0; row < MAX_X; row++)
+        for(col = 0; col < MAX_Y; col++) {
+            i = cells[row][col].getPheremone()*255/100;
+            background.setPixel(col, row, qRgba(0, i, 0, i));
+        }
+
+    ui->graphicsView->setBackgroundBrush(background);
 
     QTimer::singleShot(qMax(0, 33 - timer.elapsed()), this, SLOT(timerSlot()));
 }

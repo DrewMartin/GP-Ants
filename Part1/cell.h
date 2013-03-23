@@ -13,7 +13,7 @@ public:
     bool hasFood() const;
     bool atAnthill() const;
     bool takeFood();
-    int getScent() const;
+    double getScent() const;
 
     bool addPheremone(int amount);
     void update();
@@ -27,7 +27,7 @@ public:
 
     void setAnthill();
     void setFood(QSP<Food> food);
-    void setScent(int val);
+    void setScent(double val);
 
     static void setDecay(double decay);
 
@@ -37,9 +37,8 @@ private:
     QSP<Food> food;
     bool anthill;
     QColor color;
-    int scent;
+    double scent;
     int pheromone;
-    QGraphicsRectItem *rect;
 
     static double decay;
 };
