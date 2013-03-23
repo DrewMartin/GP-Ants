@@ -12,6 +12,7 @@
 #include "singleargnode.h"
 #include "constantnode.h"
 #include "variablenode.h"
+#include "common/blockingqueue.h"
 
 namespace Ui {
 class Part2Window;
@@ -47,6 +48,9 @@ private:
     QList<QGraphicsLineItem*> bestLines;
     QList<QPointF> bestPoints;
     QList<QSP<MathNode> > pop;
+    BlockingQueue<int> work;
+    BlockingQueue<int> workDone;
+    BlockingQueue<QSP<MathNode> > nextPop;
 
     bool stopNow;
     int gen;

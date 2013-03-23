@@ -3,6 +3,5 @@ HEADERS += \
     ../common/common.h \
     ../common/blockingqueue.h
 
-SOURCES += \
-    ../common/blockingqueue.cpp
+SOURCES +=
 

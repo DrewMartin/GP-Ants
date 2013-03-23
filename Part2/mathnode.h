@@ -16,7 +16,7 @@ public:
     static QSP<MathNode> generateFullTree(int maxDepth);
     static QSP<MathNode> generateGrowTree(int maxDepth);
 
-    double score(QList<QPointF> &points);
+    double getScore(QList<QPointF> &points);
     double getScore();
 
 protected:
@@ -26,6 +26,7 @@ private:
     static QSP<MathNode> generateTree(int height, bool full);
 
     double myScore;
+    bool scored;
 };
 
 #endif // MATHNODE_H

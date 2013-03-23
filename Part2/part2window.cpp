@@ -18,6 +18,7 @@ Part2Window::Part2Window(QWidget *parent) :
 
     connect(ui->startButton, SIGNAL(clicked()), SLOT(start()));
     connect(ui->stopButton, SIGNAL(clicked()), SLOT(stop()));
+    createWorkers();
 }
 
 Part2Window::~Part2Window()
@@ -208,30 +209,31 @@ void Part2Window::updateLoop()
 {
     if (stopNow)
         return;
+    QTime timer;
     QList<QSP<MathNode> > nextPop;
     QList<QSP<Node<double, double> > > temp;
     QSP<Node<double, double> > tempNode;
     QSP<MathNode> bestNode, n1, n2;
 
-    double best, curr, x, prevX, prevY, i;
-    int bestIndex;
+    double curr, x, prevX, prevY, i;
+
+    timer.start();
 
     gen++;
     ui->generationText->setText(QString::number(gen));
 
-    best = -1.0;
-    for (i = 0; i < pop.length(); i++) {
-        curr = pop.at(i)->score(bestPoints);
-        if (curr == curr && (best < 0 || curr < best)) {
-            best = curr;
-            bestIndex = i;
-        }
+    for (int i = 0; i < pop.length(); i++) {
+        work.put(i);
     }
+    workDone.waitOnSize(pop.length());
+    workDone.clear();
 
-    ui->bestScoreText->setText(QString::number(best, 'f', 6));
+    qSort(pop.begin(), pop.end(), comparator);
 
-    bestNode = pop.at(bestIndex);
+    bestNode = pop.at(0);
+
     if (!bestNode.isNull()){
+        ui->bestScoreText->setText(QString::number(bestNode->getScore(), 'f', 6));
         ui->bestEqnText->setText(bestNode->toString());
 
         prevX = MIN_X;
@@ -243,12 +245,11 @@ void Part2Window::updateLoop()
             prevX = x;
             prevY = curr;
         }
+        if (bestNode->getScore() <= PRECISION) {
+            stop();
+            return;
+        }
     }
-
-    if (best <= PRECISION)
-        return;
-
-    qSort(pop.begin(), pop.end(), comparator);
 
     nextPop.clear();
     nextPop = pop.mid(0, pop.length()/10);
@@ -275,15 +276,29 @@ void Part2Window::updateLoop()
     }
 
     pop = nextPop;
+    qDebug () << "Time to update" << timer.elapsed();
     QTimer::singleShot(1, this, SLOT(updateLoop()));
 }
 
 void Part2Window::createWorkers()
 {
-
+    int threads = QThread::idealThreadCount();
+    for (int i = 0; i < threads; i++) {
+        QtConcurrent::run(this, &Part2Window::workerFunction);
+    }
 }
 
 
 void Part2Window::workerFunction()
 {
+    int task;
+    while (true) {
+        task = work.take();
+        if (task >= 0) {
+            pop.at(task)->getScore(bestPoints);
+            workDone.put(task);
+        } else {
+
+        }
+    }
 }

@@ -16,7 +16,8 @@ static TwoArgOp twoArgOps[] = { mult, add, sub, divide, qPow };
 #define TWO_ARG_OP_COUNT 5
 #define TOTAL_ARG_COUNT (SINGLE_ARG_OP_COUNT + TWO_ARG_OP_COUNT)
 
-MathNode::MathNode()
+MathNode::MathNode() :
+    scored(false)
 {
 }
 
@@ -38,8 +39,10 @@ QSP<MathNode> MathNode::generateGrowTree(int depth)
     return tree;
 }
 
-double MathNode::score(QList<QPointF> &points)
+double MathNode::getScore(QList<QPointF> &points)
 {
+    if (scored)
+        return myScore;
     double score = 0;
     double diff;
     QPointF p;
@@ -52,11 +55,14 @@ double MathNode::score(QList<QPointF> &points)
         score += diff;
     }
     myScore = score;
+    scored = true;
     return score;
 }
 
 double MathNode::getScore()
 {
+    if (!scored)
+        throw QString("Not scored yet");
     return myScore;
 }
 
