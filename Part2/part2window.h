@@ -50,7 +50,7 @@ private:
     QList<QSP<MathNode> > pop;
     BlockingQueue<int> work;
     BlockingQueue<int> workDone;
-    BlockingQueue<QSP<MathNode> > nextPop;
+    BlockingQueue<QSP<MathNode> > nextGen;
 
     bool stopNow;
     int gen;

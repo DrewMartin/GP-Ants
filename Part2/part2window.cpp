@@ -221,12 +221,12 @@ void Part2Window::updateLoop()
 
     gen++;
     ui->generationText->setText(QString::number(gen));
-
+    work.clear();
+    workDone.clear();
     for (int i = 0; i < pop.length(); i++) {
         work.put(i);
     }
     workDone.waitOnSize(pop.length());
-    workDone.clear();
 
     qSort(pop.begin(), pop.end(), comparator);
 
@@ -253,27 +253,12 @@ void Part2Window::updateLoop()
 
     nextPop.clear();
     nextPop = pop.mid(0, pop.length()/10);
-    while (nextPop.length() < POP_SIZE) {
-        if (RAND_INT(100) < XOVER_PROB) {
-            n1 = tournamentSelect(pop);
-            n2 = tournamentSelect(pop);
-            temp = MathNode::crossover(n1, n2);
-            for (i = 0; i < temp.length() && nextPop.length() < POP_SIZE; i++) {
-                if (!temp.at(i).isNull()) {
-                    tempNode = temp.at(i);
-                    n1 = tempNode.staticCast<MathNode>();
-                    nextPop.append(n1);
-                }
-            }
-        } else {
-            n1 = tournamentSelect(pop);
-            tempNode = MathNode::mutate(n1);
-            if (!tempNode.isNull()) {
-                n2 = tempNode.staticCast<MathNode>();
-                nextPop.append(n2);
-            }
-        }
+    nextGen.clear();
+    for (int i = 0; i < pop.length() - nextPop.length(); i++) {
+        work.put(-1);
     }
+    nextGen.waitOnSize(pop.length() - nextPop.length());
+    nextPop.append(nextGen.takeList());
 
     pop = nextPop;
     qDebug () << "Time to update" << timer.elapsed();
@@ -292,13 +277,34 @@ void Part2Window::createWorkers()
 void Part2Window::workerFunction()
 {
     int task;
+    QSP<Node<double, double> > tempNode;
+    QSP<MathNode> n1, n2;
     while (true) {
         task = work.take();
         if (task >= 0) {
             pop.at(task)->getScore(bestPoints);
             workDone.put(task);
         } else {
-
+            if (RAND_INT(100) < XOVER_PROB) {
+                while (true) {
+                    n1 = tournamentSelect(pop);
+                    n2 = tournamentSelect(pop);
+                    tempNode = MathNode::crossover(n1, n2);
+                    if (!tempNode.isNull()) {
+                        nextGen.put(tempNode.staticCast<MathNode>());
+                        break;
+                    }
+                }
+            } else {
+                while (true) {
+                    n1 = tournamentSelect(pop);
+                    tempNode = MathNode::mutate(n1);
+                    if (!tempNode.isNull()) {
+                        nextGen.put(tempNode.staticCast<MathNode>());
+                        break;
+                    }
+                }
+            }
         }
     }
 }

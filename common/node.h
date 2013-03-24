@@ -62,24 +62,23 @@ public:
         return cloned;
     }
 
-    static QList<QSP<Node<Var, Res> > > crossover(QSP<Node<Var, Res> > n1, QSP<Node<Var, Res> > n2)
+    static QSP<Node<Var, Res> > crossover(QSP<Node<Var, Res> > n1, QSP<Node<Var, Res> > n2)
     {
         CandidatePairList n1Nodes, n2Nodes;
-        CandidatePair choice1(QSP<Node<Var, Res> >(), n1), choice2(QSP<Node<Var, Res> >(), n2);
+        QSP<Node<Var, Res> > clone1 = clone(n1);
+        CandidatePair choice1(QSP<Node<Var, Res> >(), clone1), choice2(QSP<Node<Var, Res> >(), n2);
         n1Nodes.append(choice1);
         n2Nodes.append(choice2);
-        QSP<Node<Var, Res> > clone1 = clone(n1), clone2 = clone(n2);
         populateChildList(n1Nodes, clone1);
-        populateChildList(n2Nodes, clone2);
-        int rand1, rand2, i, j;
+        populateChildList(n2Nodes, n2);
+        int rand1, rand2, i;
 
         while(true) {
             rand1 = RAND_INT(n1Nodes.length());
             rand2 = RAND_INT(n2Nodes.length());
             choice1 = n1Nodes.at(rand1);
             choice2 = n2Nodes.at(rand2);
-            if ((choice1.first.isNull() || choice1.first->getDepth() + choice2.second->getHeight() <= MAX_HEIGHT) &&
-                    (choice2.first.isNull() || choice2.first->getDepth() + choice1.second->getHeight() > MAX_HEIGHT))
+            if (choice1.first.isNull() || choice1.first->getDepth() + choice2.second->getHeight() <= MAX_HEIGHT)
                 break;
         }
 
@@ -92,18 +91,8 @@ public:
             choice1.first->children[i] = clone(choice2.second);
         }
 
-        if (choice2.first.isNull()) {
-            clone2 = clone(choice1.second);
-        } else {
-            for (j = 0; j < choice2.first->children.length(); j++)
-                if (choice2.first->children.at(j) == choice2.second)
-                    break;
-
-            choice2.first->children[j] = clone(choice1.second);
-        }
         clone1->updateHeightDepth();
-        clone2->updateHeightDepth();
-        return QList<QSP<Node<Var, Res> > >() << clone1 << clone2;
+        return clone1;
     }
 
 
