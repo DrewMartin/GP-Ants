@@ -49,7 +49,6 @@ private:
     QList<QPointF> bestPoints;
     QList<QSP<MathNode> > pop;
     BlockingQueue<int> work;
-    BlockingQueue<int> workDone;
     BlockingQueue<QSP<MathNode> > nextGen;
 
     bool stopNow;

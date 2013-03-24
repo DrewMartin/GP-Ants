@@ -88,7 +88,7 @@ void Part2Window::start()
     generatePop();
     stopNow = false;
     gen = 0;
-    updateLoop();
+    QtConcurrent::run(this, &Part2Window::updateLoop);
 }
 
 void Part2Window::stop()
@@ -159,6 +159,7 @@ void Part2Window::generatePop()
                 hash = tree->toString();
                 if (!popAlready.contains(hash)) {
                     popAlready.insert(hash);
+                    tree->getScore(bestPoints);
                     pop.append(tree);
                     break;
                 }
@@ -169,6 +170,7 @@ void Part2Window::generatePop()
                 hash = tree->toString();
                 if (!popAlready.contains(hash)) {
                     popAlready.insert(hash);
+                    tree->getScore(bestPoints);
                     pop.append(tree);
                     break;
                 }
@@ -187,7 +189,7 @@ QSP<MathNode> Part2Window::tournamentSelect(QList<QSP<MathNode> > &popList)
     for (int i = 0; i < TOURNAMENT_SIZE; i++) {
         selection = popList.at(RAND_INT(popList.length()));
         tournament += selection;
-        if (selection->getScore() != selection->getScore() && (best.isNull() || best->getScore() > selection->getScore()))
+        if (isnan(selection->getScore()) && (best.isNull() || best->getScore() > selection->getScore()))
             best = selection;
     }
 
@@ -197,77 +199,73 @@ QSP<MathNode> Part2Window::tournamentSelect(QList<QSP<MathNode> > &popList)
     return tournament.at(RAND_INT(TOURNAMENT_SIZE));
 }
 
-bool comparator(QSP<MathNode> n1, QSP<MathNode> n2) {
-    if (n2->getScore() != n2->getScore())
+bool comparator(QSP<MathNode> &n1, QSP<MathNode> &n2) {
+    if (isnan(n2->getScore()))
         return true;
-    if (n1->getScore() != n1->getScore())
+    if (isnan(n1->getScore()))
         return false;
     return n1->getScore() < n2->getScore();
 }
 
 void Part2Window::updateLoop()
 {
-    if (stopNow)
-        return;
     QTime timer;
     QList<QSP<MathNode> > nextPop;
-    QList<QSP<Node<double, double> > > temp;
-    QSP<Node<double, double> > tempNode;
-    QSP<MathNode> bestNode, n1, n2;
+    QSP<MathNode> bestNode;
+    QString hash, bestHash;
 
     double curr, x, prevX, prevY, i;
 
-    timer.start();
+    while (!stopNow)
+    {
+        timer.restart();
 
-    gen++;
-    ui->generationText->setText(QString::number(gen));
-    work.clear();
-    workDone.clear();
-    for (int i = 0; i < pop.length(); i++) {
-        work.put(i);
-    }
-    workDone.waitOnSize(pop.length());
+        gen++;
+        ui->generationText->setText(QString::number(gen));
+        qSort(pop.begin(), pop.end(), comparator);
 
-    qSort(pop.begin(), pop.end(), comparator);
+        bestNode = pop.at(0);
+        hash = bestNode->toString();
 
-    bestNode = pop.at(0);
+        if (!bestNode.isNull() && hash != bestHash){
+            bestHash = hash;
+            ui->bestScoreText->setText(QString::number(bestNode->getScore(), 'f', 6));
+            ui->bestEqnText->setText(bestNode->toString());
 
-    if (!bestNode.isNull()){
-        ui->bestScoreText->setText(QString::number(bestNode->getScore(), 'f', 6));
-        ui->bestEqnText->setText(bestNode->toString());
-
-        prevX = MIN_X;
-        prevY = -bestNode->eval(MIN_X);
-        i = 0;
-        for (x = MIN_X + STEP_SIZE; x <= MAX_X; x += STEP_SIZE, i++) {
-            curr = -bestNode->eval(x);
-            bestLines.at(i)->setLine(prevX, prevY, x, curr);
-            prevX = x;
-            prevY = curr;
+            prevX = MIN_X;
+            prevY = -bestNode->eval(MIN_X);
+            i = 0;
+            for (x = MIN_X + STEP_SIZE; x <= MAX_X; x += STEP_SIZE, i++) {
+                curr = -bestNode->eval(x);
+                bestLines.at(i)->setLine(prevX, prevY, x, curr);
+                prevX = x;
+                prevY = curr;
+            }
+            if (bestNode->getScore() <= PRECISION) {
+                stop();
+                return;
+            }
         }
-        if (bestNode->getScore() <= PRECISION) {
-            stop();
-            return;
+
+        nextPop.clear();
+        nextPop = pop.mid(0, pop.length()/10);
+        work.clear();
+        nextGen.clear();
+        for (int i = 0; i < POP_SIZE - nextPop.length(); i++) {
+            work.put(-1);
         }
-    }
+        nextGen.waitOnSize(POP_SIZE - nextPop.length());
+        nextPop.append(nextGen.takeList());
 
-    nextPop.clear();
-    nextPop = pop.mid(0, pop.length()/10);
-    nextGen.clear();
-    for (int i = 0; i < pop.length() - nextPop.length(); i++) {
-        work.put(-1);
-    }
-    nextGen.waitOnSize(pop.length() - nextPop.length());
-    nextPop.append(nextGen.takeList());
+        pop = nextPop;
+        qDebug () << "Time to update" << timer.elapsed();
 
-    pop = nextPop;
-    qDebug () << "Time to update" << timer.elapsed();
-    QTimer::singleShot(1, this, SLOT(updateLoop()));
+    }
 }
 
 void Part2Window::createWorkers()
 {
-    int threads = QThread::idealThreadCount();
+    int threads = QThread::idealThreadCount() - 1;
     for (int i = 0; i < threads; i++) {
         QtConcurrent::run(this, &Part2Window::workerFunction);
     }
@@ -281,28 +279,27 @@ void Part2Window::workerFunction()
     QSP<MathNode> n1, n2;
     while (true) {
         task = work.take();
-        if (task >= 0) {
-            pop.at(task)->getScore(bestPoints);
-            workDone.put(task);
-        } else {
-            if (RAND_INT(100) < XOVER_PROB) {
-                while (true) {
-                    n1 = tournamentSelect(pop);
-                    n2 = tournamentSelect(pop);
-                    tempNode = MathNode::crossover(n1, n2);
-                    if (!tempNode.isNull()) {
-                        nextGen.put(tempNode.staticCast<MathNode>());
-                        break;
-                    }
+        if (RAND_INT(100) < XOVER_PROB) {
+            while (true) {
+                n1 = tournamentSelect(pop);
+                n2 = tournamentSelect(pop);
+                tempNode = MathNode::crossover(n1, n2);
+                if (!tempNode.isNull()) {
+                    n1 = tempNode.staticCast<MathNode>();
+                    n1->getScore(bestPoints);
+                    nextGen.put(n1);
+                    break;
                 }
-            } else {
-                while (true) {
-                    n1 = tournamentSelect(pop);
-                    tempNode = MathNode::mutate(n1);
-                    if (!tempNode.isNull()) {
-                        nextGen.put(tempNode.staticCast<MathNode>());
-                        break;
-                    }
+            }
+        } else {
+            while (true) {
+                n1 = tournamentSelect(pop);
+                tempNode = MathNode::mutate(n1);
+                if (!tempNode.isNull()) {
+                    n1 = tempNode.staticCast<MathNode>();
+                    n1->getScore(bestPoints);
+                    nextGen.put(n1);
+                    break;
                 }
             }
         }
