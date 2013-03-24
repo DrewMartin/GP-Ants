@@ -28,14 +28,14 @@ MathNode::~MathNode()
 QSP<MathNode> MathNode::generateFullTree(int depth)
 {
     QSP<MathNode> tree =  generateTree(depth, true);
-    tree->updateHeightDepth();
+    tree->updateStats();
     return tree;
 }
 
 QSP<MathNode> MathNode::generateGrowTree(int depth)
 {
     QSP<MathNode> tree = generateTree(depth, false);
-    tree->updateHeightDepth();
+    tree->updateStats();
     return tree;
 }
 

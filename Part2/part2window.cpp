@@ -237,6 +237,8 @@ void Part2Window::updateLoop()
             i = 0;
             for (x = MIN_X + STEP_SIZE; x <= MAX_X; x += STEP_SIZE, i++) {
                 curr = -bestNode->eval(x);
+                if (isnan(curr))
+                    curr = 9999999999999.0;
                 bestLines.at(i)->setLine(prevX, prevY, x, curr);
                 prevX = x;
                 prevY = curr;

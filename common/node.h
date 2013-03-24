@@ -7,8 +7,7 @@
 #include <QPair>
 #include <QDebug>
 
-#define CandidatePair QPair<QSP<Node<Var, Res> >, QSP<Node<Var, Res> > >
-#define CandidatePairList QList<CandidatePair>
+#define CandidatePair QPair<QSP<Node<Var, Res> >, int >
 
 template<typename Var, typename Res>
 class Node
@@ -22,6 +21,7 @@ public:
 
     int getDepth() { return depth; }
     int getHeight() { return height; }
+    int getSize() { return size; }
 
     int getChildCount() { return children.length(); }
     QSP<Node<Var, Res> > getChild(int i) {
@@ -30,9 +30,8 @@ public:
         return children.at(i);
     }
 
-    void setDepth(int d) { depth = d; }
-    void updateHeightDepth() {
-        updateHeightDepth(0);
+    void updateStats() {
+        updateStats(0);
     }
 
     void setChild(int i, QSP<Node<Var, Res> > node) {
@@ -43,56 +42,74 @@ public:
 
     static QSP<Node<Var, Res> > mutate(QSP<Node<Var, Res> > node)
     {
-        CandidatePairList nodeList;
+        int i = RAND_INT(node->getSize());
+        if (node->getSize() <= 1 || i == 0) {
+            QSP<Node<Var, Res> > tree = node->generateSubtree(RAND_INT(MAX_HEIGHT));
+            tree->updateStats();
+            return tree;
+        }
+
         QSP<Node<Var, Res> > cloned = clone(node);
-        populateChildList(nodeList, cloned);
-        if (nodeList.length() == 0)
-            return QSP<Node<Var, Res> >();
-        int i = RAND_INT(nodeList.length());
-        CandidatePair candidate = nodeList.at(i);
+        CandidatePair candidate;
+        getCandidate(candidate, cloned, cloned, 0, i);
         int maxHeight = MAX_HEIGHT - candidate.first->getDepth();
         if (maxHeight <= 0)
             return QSP<Node<Var, Res> >();
         maxHeight = RAND_INT(maxHeight);
-        for (i = 0; i < candidate.first->children.length(); i++)
-            if (candidate.first->children.at(i) == candidate.second)
-                break;
-        candidate.first->children[i] = node->generateSubtree(maxHeight);
-        cloned->updateHeightDepth();
+        candidate.first->children[candidate.second] = node->generateSubtree(maxHeight);
+        cloned->updateStats();
         return cloned;
     }
 
     static QSP<Node<Var, Res> > crossover(QSP<Node<Var, Res> > n1, QSP<Node<Var, Res> > n2)
     {
-        CandidatePairList n1Nodes, n2Nodes;
-        QSP<Node<Var, Res> > clone1 = clone(n1);
-        CandidatePair choice1(QSP<Node<Var, Res> >(), clone1), choice2(QSP<Node<Var, Res> >(), n2);
-        n1Nodes.append(choice1);
-        n2Nodes.append(choice2);
-        populateChildList(n1Nodes, clone1);
-        populateChildList(n2Nodes, n2);
-        int rand1, rand2, i;
+        QSP<Node<Var, Res> > cloned = clone(n1);
+        CandidatePair c1, c2;
+
+        int rand1, rand2, orig1, orig2, attempts = 0;
 
         while(true) {
-            rand1 = RAND_INT(n1Nodes.length());
-            rand2 = RAND_INT(n2Nodes.length());
-            choice1 = n1Nodes.at(rand1);
-            choice2 = n2Nodes.at(rand2);
-            if (choice1.first.isNull() || choice1.first->getDepth() + choice2.second->getHeight() <= MAX_HEIGHT)
+            if (++attempts > 50)
+                return QSP<Node<Var, Res> >();
+            orig1 = rand1 = RAND_INT(cloned->getSize());
+            orig2 = rand2 = RAND_INT(n2->getSize());
+            if (rand1 == 0 && rand2 == 0)
+                continue;
+
+            if (rand1 == 0)
+                c1 = CandidatePair();
+            else
+                getCandidate(c1, cloned, cloned, 0, rand1);
+
+            if (rand2 == 0)
+                c2 = CandidatePair();
+            else
+                getCandidate(c2, n2, n2, 0, rand2);
+
+            if (c1.first.isNull())
+                // The new parent is the root of the first. The subtree from n2 will replace n1.
+                // No height check required since all nodes in n2 are assumed to be <= MAX_HEIGHT
+                break;
+            else if (c2.first.isNull() && c1.first->getDepth() + n2->getHeight() > MAX_HEIGHT)
+                // c2 is the root of n2, so got to make sure that it's not too high added to c1
+                continue;
+            else if (c2.first.isNull() || c1.first->getDepth() + c2.first->children.at(c2.second)->getHeight() <= MAX_HEIGHT)
+                // make sure that either c2 is null (height checked already)
+                // or c1 + c2 is under the max height
                 break;
         }
 
-        if (choice1.first.isNull()) {
-            clone1 = clone(choice2.second);
+        if (c1.first.isNull()) {
+            cloned = clone(c2.first->children.at(c2.second));
         } else {
-            for (i = 0; i < choice1.first->children.length(); i++)
-                if (choice1.first->children.at(i) == choice1.second)
-                    break;
-            choice1.first->children[i] = clone(choice2.second);
+            if (c2.first.isNull())
+                c1.first->children[c1.second] = clone(n2);
+            else
+                c1.first->children[c1.second] = clone(c2.first->children.at(c2.second));
         }
 
-        clone1->updateHeightDepth();
-        return clone1;
+        cloned->updateStats();
+        return cloned;
     }
 
 
@@ -103,23 +120,29 @@ protected:
     virtual QSP<Node<Var, Res> > generateSubtree(int maxHeight) = 0;
 
 private:
-    int updateHeightDepth(int depth)
+    void updateStats(int depth)
     {
         this->depth = depth;
         int maxHeight = -1;
-        for (int i = 0; i < children.length(); i++)
-            maxHeight = qMax(maxHeight, children.at(i)->updateHeightDepth(depth + 1));
+        size = 1;
+        for (int i = 0; i < children.length(); i++) {
+            children.at(i)->updateStats(depth + 1);
+            maxHeight = qMax(maxHeight, children.at(i)->getHeight());
+            size += children.at(i)->getSize();
+        }
         height = maxHeight + 1;
-        return height;
     }
 
-    static void populateChildList(CandidatePairList &list, QSP<Node<Var, Res> > parent)
+    static void getCandidate(CandidatePair &pair, QSP<Node<Var, Res> > &parent, QSP<Node<Var, Res> > &me, int childNum, int &i)
     {
-        CandidatePair pair;
-        for (int i = 0; i < parent->children.length(); i++) {
-            pair = CandidatePair(parent, parent->children.at(i));
-            list.append(pair);
-            populateChildList(list, parent->children.at(i));
+        if (i-- <= 0) {
+            pair = CandidatePair(parent, childNum);
+            return;
+        }
+        QSP<Node<Var, Res> > child;
+        for (int j = 0; j < me->children.length() && i > -1; j++) {
+            child = me->children.at(j);
+            getCandidate(pair, me, child, j, i);
         }
     }
 
@@ -128,6 +151,7 @@ private:
         Node<Var, Res> *copied = source->copy();
         copied->depth = source->depth;
         copied->height = source->height;
+        copied->size = source->size;
         for (int i = 0; i < source->children.length(); i++)
             copied->children.append(clone(source->children.at(i)));
         return QSP<Node<Var, Res> >(copied);
@@ -135,6 +159,7 @@ private:
 
     int depth;
     int height;
+    int size;
 
 };
 
