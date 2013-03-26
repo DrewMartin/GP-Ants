@@ -21,7 +21,19 @@ inline double sub(double v1, double v2)
 
 inline double divide(double v1, double v2)
 {
+    if (v2 == 0) {
+        if (v1 == 0)
+            return 0;
+        if (v1 < 0)
+            return INT_MIN + 1;
+        return INT_MAX - 1;
+    }
     return v1 / v2;
+}
+
+inline double power(double v1, double v2)
+{
+    return qPow(v1, v2);
 }
 
 
@@ -46,7 +58,7 @@ inline QString getSymbolForTwoArgOp(TwoArgOp op) {
         return QString("(%1 - %2)");
     if (op == divide)
         return QString("(%1 / %2)");
-    if (op == qPow)
+    if (op == power)
         return QString("(%1^%2)");
 
     return "UNKNOWN";

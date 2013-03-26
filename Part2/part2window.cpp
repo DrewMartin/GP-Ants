@@ -13,11 +13,14 @@ Part2Window::Part2Window(QWidget *parent) :
     ui->setupUi(this);
 
     pointsChanged(ui->pointsSlider->value());
+    elitismChanged(ui->elitismSlider->value());
 
     connect(ui->pointsSlider, SIGNAL(valueChanged(int)), SLOT(pointsChanged(int)));
+    connect(ui->elitismSlider, SIGNAL(valueChanged(int)), SLOT(elitismChanged(int)));
 
     connect(ui->startButton, SIGNAL(clicked()), SLOT(start()));
     connect(ui->stopButton, SIGNAL(clicked()), SLOT(stop()));
+    connect(this, SIGNAL(nextGenSignal(int,QString, double)), SLOT(nextGenSlot(int,QString, double)), Qt::QueuedConnection);
     createWorkers();
 }
 
@@ -29,6 +32,18 @@ Part2Window::~Part2Window()
 void Part2Window::pointsChanged(int val)
 {
     ui->pointsLabel->setText(QString::number(val));
+}
+
+void Part2Window::elitismChanged(int val)
+{
+    ui->elitismLabel->setText(QString::number(val));
+}
+
+void Part2Window::nextGenSlot(int gen, QString equation, double score)
+{
+    ui->generationText->setText(QString::number(gen));
+    ui->bestEqnText->setText(equation);
+    ui->bestScoreText->setText(QString::number(score, 'f', 6));
 }
 
 void Part2Window::start()
@@ -102,13 +117,15 @@ void Part2Window::setWidgetsEnabled(bool enabled)
     ui->startButton->setEnabled(enabled);
     ui->stopButton->setEnabled(!enabled);
     ui->equationGroup->setEnabled(enabled);
+    ui->groupBox->setEnabled(enabled);
+    ui->groupBox_2->setEnabled(enabled);
 }
 
 void Part2Window::createTrigTree()
 {
     QSP<MathNode> l(new VariableNode());
     QSP<MathNode> r(new ConstantNode(2));
-    QSP<MathNode> c(new TwoArgNode(l, r, qPow)); // x^2
+    QSP<MathNode> c(new TwoArgNode(l, r, power)); // x^2
     l = QSP<MathNode>(new SingleArgNode(c, qSin)); // sin(x^2)
     r = QSP<MathNode>(new ConstantNode(3));
     r = QSP<MathNode>(new TwoArgNode(l, r, mult)); // 3 sin(x^2)
@@ -122,14 +139,14 @@ void Part2Window::createPolyTree()
 {
     QSP<MathNode> l(new VariableNode());
     QSP<MathNode> r(new ConstantNode(3));
-    r = QSP<MathNode>(new TwoArgNode(l, r, qPow)); // x ^ 3
+    r = QSP<MathNode>(new TwoArgNode(l, r, power)); // x ^ 3
 
     l = QSP<MathNode>(new ConstantNode(3));
     l = QSP<MathNode>(new TwoArgNode(l, r, mult)); // 3*x^3
 
     QSP<MathNode> l1(new VariableNode());
     r = QSP<MathNode>(new ConstantNode(2));
-    r = QSP<MathNode>(new TwoArgNode(l1, r, qPow)); // x^2
+    r = QSP<MathNode>(new TwoArgNode(l1, r, power)); // x^2
 
     l1 = QSP<MathNode>(new ConstantNode(2));
     r = QSP<MathNode>(new TwoArgNode(l1, r, mult)); // 2 * x^2
@@ -209,29 +226,28 @@ bool comparator(QSP<MathNode> &n1, QSP<MathNode> &n2) {
 
 void Part2Window::updateLoop()
 {
-    QTime timer;
+//    QTime timer;
     QList<QSP<MathNode> > nextPop;
     QSP<MathNode> bestNode;
     QString hash, bestHash;
 
     double curr, x, prevX, prevY, i;
+    double keepAmount = ui->elitismSlider->value() / 100.0;
 
     while (!stopNow)
     {
-        timer.restart();
+//        timer.restart();
 
         gen++;
-        ui->generationText->setText(QString::number(gen));
+
         qSort(pop.begin(), pop.end(), comparator);
 
         bestNode = pop.at(0);
         hash = bestNode->toString();
+        emit nextGenSignal(gen, hash, bestNode->getScore());
 
-        if (!bestNode.isNull() && hash != bestHash){
+        if (hash != bestHash){
             bestHash = hash;
-            ui->bestScoreText->setText(QString::number(bestNode->getScore(), 'f', 6));
-            ui->bestEqnText->setText(bestNode->toString());
-
             prevX = MIN_X;
             prevY = -bestNode->eval(MIN_X);
             i = 0;
@@ -250,7 +266,8 @@ void Part2Window::updateLoop()
         }
 
         nextPop.clear();
-        nextPop = pop.mid(0, pop.length()/10);
+        if (keepAmount > 0)
+            nextPop = pop.mid(0, pop.length()*keepAmount);
         work.clear();
         nextGen.clear();
         for (int i = 0; i < POP_SIZE - nextPop.length(); i++) {
@@ -260,7 +277,7 @@ void Part2Window::updateLoop()
         nextPop.append(nextGen.takeList());
 
         pop = nextPop;
-        qDebug () << "Time to update" << timer.elapsed();
+//        qDebug () << "Time to update" << timer.elapsed();
 
     }
 }

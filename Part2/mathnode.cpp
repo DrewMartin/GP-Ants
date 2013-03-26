@@ -10,7 +10,7 @@
 #include <qmath.h>
 
 static SingleArgOp singleArgOps[] = { qSin, qCos };
-static TwoArgOp twoArgOps[] = { mult, add, sub, divide, qPow };
+static TwoArgOp twoArgOps[] = { mult, add, sub, divide, power };
 
 #define SINGLE_ARG_OP_COUNT 2
 #define TWO_ARG_OP_COUNT 5

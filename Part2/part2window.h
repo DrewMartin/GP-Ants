@@ -28,10 +28,15 @@ public:
 
 private slots:
     void pointsChanged(int val);
+    void elitismChanged(int val);
+    void nextGenSlot(int gen, QString equation, double fitness);
 
     void start();
     void stop();
     void updateLoop();
+
+signals:
+    void nextGenSignal(int gen, QString equation, double fitness);
     
 private:
     void createWorkers();
