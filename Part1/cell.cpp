@@ -6,7 +6,7 @@ Cell::Cell(QPoint &location) :
     Entity(location),
     anthill(false),
     color(255,255,255),
-    scent(0),
+    scent(0.0),
     pheromone(0)
 {
 }
@@ -44,7 +44,7 @@ bool Cell::addPheremone(int amount)
 {
     if (amount == 0)
         return true;
-    pheromone = qMin(100, pheromone + amount);
+    pheromone = qMin(MAX_PHEROMONE, pheromone + amount);
     return false;
 }
 
@@ -78,9 +78,9 @@ bool Cell::hasPheremone() const
     return pheromone > 0;
 }
 
-int Cell::getPheremone()
+double Cell::getPheremone()
 {
-    return pheromone;
+    return pheromone * (1.0 - scent);
 }
 
 void Cell::setAnthill()
@@ -92,7 +92,7 @@ void Cell::setFood(QSharedPointer<Food> food)
 {
     this->food = food;
 }
-
+#include <QDebug>
 void Cell::setScent(double val)
 {
     scent = val;

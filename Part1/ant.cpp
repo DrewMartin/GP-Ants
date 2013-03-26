@@ -92,7 +92,7 @@ bool Ant::update(QList<QList<Cell> > &cells)
         }
         return update(cells);
     } else {
-        int leftPh = 0, rightPh = 0, straightPh = 0;
+        double leftPh = 0, rightPh = 0, straightPh = 0;
         QPoint p = pointAfterForwardMove(direction);
         straightPh = cells[p.y()][p.x()].getPheremone();
         p = pointAfterForwardMove(directionAfterLeftTurn(direction));
@@ -100,7 +100,7 @@ bool Ant::update(QList<QList<Cell> > &cells)
         p = pointAfterForwardMove(directionAfterRightTurn(direction));
         rightPh = cells[p.y()][p.x()].getPheremone();
 
-        if (leftPh == rightPh && leftPh == straightPh && leftPh == 0) {
+        if (straightPh <= 00 && rightPh <= 0.0 && leftPh <= 0.0) {
             moveRandom();
             return false;
         }

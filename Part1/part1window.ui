@@ -94,7 +94,7 @@
               <number>99</number>
              </property>
              <property name="value">
-              <number>90</number>
+              <number>95</number>
              </property>
              <property name="tracking">
               <bool>true</bool>
@@ -150,6 +150,9 @@
               <number>20</number>
              </property>
              <property name="value">
+              <number>5</number>
+             </property>
+             <property name="sliderPosition">
               <number>5</number>
              </property>
              <property name="orientation">

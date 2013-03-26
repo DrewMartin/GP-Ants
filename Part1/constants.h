@@ -64,6 +64,7 @@ inline Direction oppositeDirection(Direction source) {
 #define FOOD_RAD 4
 #define ANTHILL_RAD 7
 #define ANT_RAD 0
+#define MAX_PHEROMONE 100
 
 #define LOC_HELPER(loc,rad) loc.x()-rad, loc.y()-rad, rad*2+1, rad*2+1
 

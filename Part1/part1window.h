@@ -55,6 +55,8 @@ private:
     QList<QList<Cell> > cells;
     uint lastTime;
     bool running;
+    bool foodCleared;
+    int turn;
 };
 
 #endif // PART1WINDOW_H

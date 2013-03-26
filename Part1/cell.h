@@ -23,7 +23,7 @@ public:
     virtual void reset();
 
     bool hasPheremone() const;
-    int getPheremone();
+    double getPheremone();
 
     void setAnthill();
     void setFood(QSP<Food> food);

@@ -76,7 +76,7 @@ void Part1Window::clear()
     for (int i = 0; i < MAX_X; i++) {
         for(int j = 0; j < MAX_Y; j++) {
             cells[j][i].clear();
-            cells[j][i].setScent((sq(MAX_X)/2 - sqDistance(MAX_X/2, MAX_Y/2, j, i))*100.0/sq(MAX_X)/2);
+            cells[j][i].setScent((sq(MAX_X)/2 - sqDistance(MAX_X/2, MAX_Y/2, j, i))/((double)sq(MAX_X)/2.0));
         }
     }
 
@@ -123,6 +123,8 @@ void Part1Window::start()
         ants.append(ant);
         scene->addItem(ant->getGraphicsItem());
     }
+    turn = 0;
+    foodCleared = false;
     updateLoop();
 }
 
@@ -185,6 +187,7 @@ void Part1Window::updateLoop()
     QPoint loc, locFrom, newLoc;
     QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
     background.fill(Qt::white);
+    turn++;
 
     for (row = 0; row < MAX_X; row++)
         for(col = 0; col < MAX_Y; col++)
@@ -203,9 +206,22 @@ void Part1Window::updateLoop()
 
     for (row = 0; row < MAX_X; row++)
         for(col = 0; col < MAX_Y; col++) {
-            i = cells[row][col].getPheremone()*255/100;
+            i = (cells[row][col].getPheremone()*255/MAX_PHEROMONE) / (1.0 - cells[row][col].getScent());
             background.setPixel(col, row, qRgba(0, i, 0, i));
         }
+
+    if (!foodCleared) {
+        foodCleared = true;
+        for (i = 0; i < food.length(); i++) {
+            if (food.at(i)->hasFood()) {
+                foodCleared = false;
+                break;
+            }
+        }
+        if (foodCleared) {
+            qDebug() << "All food eaten after" << turn << "turns";
+        }
+    }
 
     ui->graphicsView->setBackgroundBrush(background);
 
