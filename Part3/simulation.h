@@ -5,11 +5,13 @@
 #include <QGraphicsScene>
 #include "antnode.h"
 #include <QRunnable>
+#include "atomicbool.h"
 
 class Simulation : public QRunnable
 {
 public:
     explicit Simulation(int maxSteps = 0);
+    ~Simulation();
 
     void setScene(QSP<QGraphicsScene> scene);
 
@@ -31,7 +33,7 @@ private:
     int maxSteps;
     bool doneRunning;
     int score;
-    bool stopped;
+    AtomicBool stopped;
     
 };
 

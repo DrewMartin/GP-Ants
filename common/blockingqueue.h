@@ -25,7 +25,10 @@ public:
         QMutexLocker locker(&mutex);
         while(list.isEmpty())
             listIsEmptyCondition.wait(&mutex);
-        return list.takeFirst();
+        T item = list.takeFirst();
+        if (list.isEmpty())
+            waitForEmptyCondition.wakeAll();
+        return item;
     }
 
     QList<T> takeList()
@@ -33,6 +36,7 @@ public:
         QMutexLocker locker(&mutex);
         QList<T> copy(list);
         list.clear();
+        waitForEmptyCondition.wakeAll();
         return copy;
     }
 
@@ -43,14 +47,22 @@ public:
             minSizeCondition.wait(&mutex);
     }
 
+    void waitForEmpty() {
+        QMutexLocker locker(&mutex);
+        while (!list.isEmpty())
+            waitForEmptyCondition.wait(&mutex);
+    }
+
     void clear() {
         QMutexLocker locker(&mutex);
         list.clear();
+        waitForEmptyCondition.wakeAll();
     }
 
 private:
     QWaitCondition minSizeCondition;
     QWaitCondition listIsEmptyCondition;
+    QWaitCondition waitForEmptyCondition;
     QMutex mutex;
     QList<T> list;
 };

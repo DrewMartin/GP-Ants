@@ -29,6 +29,15 @@ Part2Window::~Part2Window()
     delete ui;
 }
 
+void Part2Window::closeEvent(QCloseEvent *)
+{
+    int threads = QThread::idealThreadCount() - 1;
+    work.clear();
+    for (int i = 0; i < threads; i++) {
+        work.put(0);
+    }
+}
+
 void Part2Window::pointsChanged(int val)
 {
     ui->pointsLabel->setText(QString::number(val));
@@ -231,7 +240,8 @@ void Part2Window::updateLoop()
     QSP<MathNode> bestNode;
     QString hash, bestHash;
 
-    double curr, x, prevX, prevY, i;
+    double curr, x, prevX, prevY;
+    int i;
     double keepAmount = ui->elitismSlider->value() / 100.0;
 
     while (!stopNow)
@@ -270,8 +280,8 @@ void Part2Window::updateLoop()
             nextPop = pop.mid(0, pop.length()*keepAmount);
         work.clear();
         nextGen.clear();
-        for (int i = 0; i < POP_SIZE - nextPop.length(); i++) {
-            work.put(-1);
+        for (i = 0; i < POP_SIZE - nextPop.length(); i++) {
+            work.put(1);
         }
         nextGen.waitOnSize(POP_SIZE - nextPop.length());
         nextPop.append(nextGen.takeList());
@@ -298,6 +308,8 @@ void Part2Window::workerFunction()
     QSP<MathNode> n1, n2;
     while (true) {
         task = work.take();
+        if (task == 0)
+            return;
         if (RAND_INT(100) < XOVER_PROB) {
             while (true) {
                 n1 = tournamentSelect(pop);

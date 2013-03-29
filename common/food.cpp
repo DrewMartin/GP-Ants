@@ -14,8 +14,8 @@ Food::Food(QPoint &location, int quantity) :
 
 Food::~Food()
 {
-    if (ellipse)
-        delete ellipse;
+//    if (ellipse)
+//        delete ellipse;
 }
 
 int Food::getFoodLeft()

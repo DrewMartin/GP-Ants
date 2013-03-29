@@ -377,6 +377,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="currGeneration">
+        <property name="text">
+         <string>0</string>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -391,6 +394,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="bestFitness">
+        <property name="text">
+         <string>0</string>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>

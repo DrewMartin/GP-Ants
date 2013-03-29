@@ -10,6 +10,8 @@
 #include "common/constants.h"
 #include "options.h"
 #include "simulation.h"
+#include "blockingqueue.h"
+#include "blockingcounter.h"
 
 namespace Ui {
 class Part3Window;
@@ -22,6 +24,9 @@ class Part3Window : public QMainWindow
 public:
     explicit Part3Window(QWidget *parent = 0);
     ~Part3Window();
+
+protected:
+    void closeEvent(QCloseEvent *);
 
 private slots:
     void foodCountChanged(int val);
@@ -39,13 +44,25 @@ private slots:
     void startDisplay();
 
 private:
+
     void setWidgetsEnabled(bool enabled);
+    void generatePop();
+    void workerFunction();
+    void GPFunction();
+    QSP<AntNode> tournamentSelect(QList<QSP<AntNode> > &popList);
+
     Ui::Part3Window *ui;
     QSP<QGraphicsScene> scene;
     QSP<Simulation> graphicSim;
     QSP<AntNode> bestBehaviour;
+    QList<QSP<AntNode> > pop;
+    BlockingQueue<int> work;
+    BlockingQueue<QSP<AntNode> > nextGen;
+    BlockingCounter counter;
+
     bool running;
     bool runningGP;
+    int gen;
 
 };
 

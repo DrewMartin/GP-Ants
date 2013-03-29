@@ -26,6 +26,9 @@ public:
     explicit Part2Window(QWidget *parent = 0);
     ~Part2Window();
 
+protected:
+    void closeEvent(QCloseEvent *);
+
 private slots:
     void pointsChanged(int val);
     void elitismChanged(int val);

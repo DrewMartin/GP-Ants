@@ -16,12 +16,14 @@ SOURCES += main.cpp\
         part3window.cpp \
     simulation.cpp \
     options.cpp \
-    gpant.cpp
+    gpant.cpp \
+    gpworker.cpp
 
 HEADERS  += part3window.h \
     simulation.h \
     options.h \
-    gpant.h
+    gpant.h \
+    gpworker.h
 
 FORMS    += part3window.ui
 

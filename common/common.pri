@@ -9,7 +9,8 @@ HEADERS += \
     ../common/constants.h \
     ../common/graphicsview.h \
     ../common/ant.h \
-    ../common/atomicbool.h
+    ../common/atomicbool.h \
+    ../common/blockingcounter.h
 
 SOURCES += \
     ../common/food.cpp \
@@ -18,5 +19,6 @@ SOURCES += \
     ../common/entity.cpp \
     ../common/graphicsview.cpp \
     ../common/ant.cpp \
-    ../common/atomicbool.cpp
+    ../common/atomicbool.cpp \
+    ../common/blockingcounter.cpp
 

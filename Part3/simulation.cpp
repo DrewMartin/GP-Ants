@@ -3,9 +3,11 @@
 #include "options.h"
 #include <QTime>
 #include <QThread>
+#include <QDebug>
 
 Simulation::Simulation(int maxSteps) :
-    maxSteps(maxSteps)
+    maxSteps(maxSteps),
+    stopped(false)
 {
     QPoint loc;
     QList<Cell> thisRow;
@@ -20,6 +22,10 @@ Simulation::Simulation(int maxSteps) :
     setAutoDelete(false);
 }
 
+Simulation::~Simulation()
+{
+}
+
 void Simulation::setScene(QSharedPointer<QGraphicsScene> scene)
 {
     this->scene = scene;
@@ -30,15 +36,15 @@ void Simulation::run()
     if (behaviour.isNull())
         return;
 
-    stopped = false;
+    stopped.set(false);
     int turn = 0;
     QTime timer;
     int row, col, i, antCount = Options::getInstance()->getAntCount();
     QPoint loc;
-    QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
+    QImage background;
     QSP<GPAnt> ant;
     QList<QSP<GPAnt> > ants;
-    bool foodCleared = false, hadFood;
+    bool foodCleared = false, hadFood, anyAntHasFood;
     setupSim();
 
     for (i = 0; i < antCount; i++) {
@@ -50,23 +56,28 @@ void Simulation::run()
     }
     score = 0;
 
-    while (!stopped && !foodCleared && (maxSteps <= 0 || turn < maxSteps)) {
+    while (!stopped.get() && !foodCleared && (maxSteps <= 0 || turn < maxSteps)) {
         turn++;
         if (!scene.isNull())
-            timer.start();
+            timer.restart();
 
         for (row = 0; row < MAX_X; row++)
             for(col = 0; col < MAX_Y; col++)
                 cells[row][col].update();
 
+        anyAntHasFood = false;
         for (i = 0; i < ants.length(); i++) {
             hadFood = ants.at(i)->antHasFood();
             behaviour->eval(cells, ants.at(i));
-            if (hadFood && !ants.at(i)->antHasFood())
+            if (ants.at(i)->antHasFood())
+                anyAntHasFood = true;
+            else if (hadFood)
+                // had food and dropped it
                 score++;
         }
 
         if (!scene.isNull()) {
+            background = QImage(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
             background.fill(Qt::white);
             for (row = 0; row < MAX_X; row++){
                 for(col = 0; col < MAX_Y; col++) {
@@ -77,19 +88,22 @@ void Simulation::run()
             scene->setBackgroundBrush(background);
         }
 
-        foodCleared = true;
-        for (i = 0; i < food.length(); i++) {
-            if (food.at(i)->hasFood()) {
-                foodCleared = false;
-                break;
+        if (!anyAntHasFood) {
+            foodCleared = true;
+            for (i = 0; i < food.length(); i++) {
+                if (food.at(i)->hasFood()) {
+                    foodCleared = false;
+                    break;
+                }
             }
         }
+
         if (!scene.isNull()) {
             QThread::msleep(qMax(0, 33 - timer.elapsed()));
         }
     }
 
-    if (maxSteps > 0)
+    if (maxSteps > 0 && turn < maxSteps)
         score += maxSteps - turn;
     doneRunning = true;
 }
@@ -102,12 +116,14 @@ bool Simulation::isDone()
 
 int Simulation::getScore()
 {
+    if (!doneRunning)
+        throw "Not yet scored";
     return score;
 }
 
 void Simulation::stop()
 {
-    stopped = true;
+    stopped.set(true);
 }
 
 void Simulation::reset()
@@ -123,14 +139,18 @@ void Simulation::reset()
 void Simulation::setupSim()
 {
     preClear();
+
+    QPoint loc(MAX_X/2, MAX_Y/2);
     if (!scene.isNull()){
         scene->clear();
-        QPoint loc(MAX_X/2, MAX_Y/2);
         QGraphicsEllipseItem *anthill = new QGraphicsEllipseItem(LOC_HELPER(loc, ANTHILL_RAD));
         anthill->setPen(QPen(Qt::magenta));
         anthill->setBrush(QBrush(Qt::magenta));
         scene->addItem(anthill);
     }
+
+    CIRCLE_LOOP_HELPER(MAX_X/2, MAX_Y/2,ANTHILL_RAD)
+            cells[row][col].setAnthill();
 
     QList<QPair<QPoint, int> > foodLocs = Options::getInstance()->getFood();
     QPoint p;
