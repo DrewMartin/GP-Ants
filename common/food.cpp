@@ -6,18 +6,16 @@ Food::Food(QPoint &location, int quantity) :
     Entity(location),
     initialQuantity(quantity),
     quantity(quantity),
-    color(0, 0, 255)
+    color(0, 0, 255),
+    ellipse(NULL)
 {
-    ellipse = new QGraphicsEllipseItem(LOC_HELPER(location, FOOD_RAD));
-    ellipse->setPen(QPen(QColor(0, 0, 0, 0)));
-    ellipse->setFlag(QGraphicsItem::ItemClipsToShape);
-    ellipse->setZValue(1);
     redraw();
 }
 
 Food::~Food()
 {
-    delete ellipse;
+    if (ellipse)
+        delete ellipse;
 }
 
 int Food::getFoodLeft()
@@ -39,26 +37,38 @@ bool Food::hasFood()
 
 QGraphicsItem *Food::getGraphicsItem()
 {
+    if (!ellipse) {
+        ellipse = new QGraphicsEllipseItem(LOC_HELPER(location, FOOD_RAD));
+        ellipse->setPen(QPen(QColor(0, 0, 0, 0)));
+        ellipse->setFlag(QGraphicsItem::ItemClipsToShape);
+        ellipse->setZValue(1);
+        redraw();
+    }
     return ellipse;
 }
 
 
 void Food::reset()
 {
-    ellipse->setVisible(true);
+    if (ellipse)
+        ellipse->setVisible(true);
+
     quantity = initialQuantity;
     redraw();
 }
 
 void Food::redraw()
 {
+    if (!ellipse) {
+        return;
+    }
+
     if (quantity == 0) {
         ellipse->setVisible(false);
     } else {
         int val = qMin(255 - quantity*255/MAX_FOOD, 250);
         color.setRed(val);
         color.setGreen(val);
-//        color.setAlpha(qMax(quantity*255/MAX_FOOD, 1));
     }
     ellipse->setBrush(QBrush(color));
 }

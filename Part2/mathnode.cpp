@@ -66,7 +66,7 @@ double MathNode::getScore()
     return myScore;
 }
 
-QSP<Node<double, double> > MathNode::generateSubtree(int maxHeight)
+QSP<Node> MathNode::generateSubtree(int maxHeight)
 {
     return generateTree(maxHeight, false);
 }

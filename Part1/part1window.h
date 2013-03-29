@@ -8,11 +8,11 @@
 #include <QSharedPointer>
 #include <QList>
 
-#include "constants.h"
-#include "food.h"
-#include "ant.h"
-#include "cell.h"
-#include "pheremone.h"
+#include "common/constants.h"
+#include "common/food.h"
+#include "smartant.h"
+#include "common/cell.h"
+#include "common/pheremone.h"
 
 namespace Ui {
 class Part1Window;
@@ -50,7 +50,7 @@ private:
     QGraphicsEllipseItem *anthill;
 
     QList<QSP<Food> > food;
-    QList<QSP<Ant> > ants;
+    QList<QSP<SmartAnt> > ants;
     QList<QSP<Pheremone> > pheremones;
     QList<QList<Cell> > cells;
     uint lastTime;

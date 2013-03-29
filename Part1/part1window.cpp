@@ -51,8 +51,6 @@ Part1Window::~Part1Window()
 
 void Part1Window::foodCountChanged(int val)
 {
-    for (int i = 0; i < food.length(); i++)
-        food.at(i)->takeFood();
     ui->foodCountLabel->setText(QString::number(val));
 }
 
@@ -112,14 +110,14 @@ void Part1Window::start()
     setWidgestEnabled(false);
     ants.clear();
     pheremones.clear();
-    QSP<Ant> ant;
+    QSP<SmartAnt> ant;
     QPoint p;
 
     double decay = ui->decaySlider->value() / 100.0;
     Cell::setDecay(decay);
     for (int i = 0; i < ui->antCountSlider->value(); i++) {
         p = QPoint(MAX_X/2, MAX_Y/2);
-        ant = QSP<Ant>(new Ant(p));
+        ant = QSP<SmartAnt>(new SmartAnt(p));
         ants.append(ant);
         scene->addItem(ant->getGraphicsItem());
     }
@@ -184,7 +182,7 @@ void Part1Window::updateLoop()
     timer.start();
     int pheremoneRadius = ui->pheremoneRadiusSlider->value();
     int row, col, i;
-    QPoint loc, locFrom, newLoc;
+    QPoint loc, newLoc;
     QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
     background.fill(Qt::white);
     turn++;
@@ -196,7 +194,6 @@ void Part1Window::updateLoop()
     for (i = 0; i < ants.length(); i++) {
         if (ants.at(i)->update(cells) && pheremoneRadius > 0) {
             loc = ants.at(i)->getLocation();
-            locFrom = ants.at(i)->getFoodSource();
             CIRCLE_LOOP_HELPER(loc.x(), loc.y(), pheremoneRadius) {
                 newLoc = QPoint(col, row);
                 cells[row][col].addPheremone(50 - sqDist*50/sqRad);
@@ -223,7 +220,7 @@ void Part1Window::updateLoop()
         }
     }
 
-    ui->graphicsView->setBackgroundBrush(background);
+    scene->setBackgroundBrush(background);
 
     QTimer::singleShot(qMax(0, 33 - timer.elapsed()), this, SLOT(timerSlot()));
 }

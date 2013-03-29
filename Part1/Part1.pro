@@ -14,20 +14,15 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         part1window.cpp \
-    entity.cpp \
-    food.cpp \
-    graphicsview.cpp \
-    ant.cpp \
-    cell.cpp \
-    pheremone.cpp
+    smartant.cpp
 
 HEADERS  += part1window.h \
-    entity.h \
-    food.h \
-    graphicsview.h \
-    ant.h \
-    cell.h \
-    pheremone.h \
-    constants.h
+    constants.h \
+    smartant.h
 
 FORMS    += part1window.ui
+
+include(../common/common.pri)
+
+INCLUDEPATH += ../ \
+    ../common

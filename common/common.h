@@ -5,8 +5,8 @@
 
 #define QSP QSharedPointer
 
-#define MIN_X -5.0
-#define MAX_X 5.0
+#define MIN_GRAPH_X -5.0
+#define MAX_GRAPH_X 5.0
 #define STEP_SIZE 0.01
 
 #define MAX_CONSTANT 5

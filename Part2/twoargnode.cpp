@@ -18,7 +18,7 @@ TwoArgNode::TwoArgNode(TwoArgOp operation) :
 
 double TwoArgNode::eval(double var)
 {
-    return operation(children.at(0)->eval(var), children.at(1)->eval(var));
+    return operation(children.at(0).staticCast<MathNode>()->eval(var), children.at(1).staticCast<MathNode>()->eval(var));
 }
 
 QString TwoArgNode::toString()

@@ -92,7 +92,8 @@ void Cell::setFood(QSharedPointer<Food> food)
 {
     this->food = food;
 }
-#include <QDebug>
+
+
 void Cell::setScent(double val)
 {
     scent = val;
@@ -103,7 +104,3 @@ void Cell::setDecay(double decay)
     Cell::decay = decay;
 }
 
-void Cell::redraw()
-{
-
-}

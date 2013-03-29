@@ -7,16 +7,14 @@
 #include <QPair>
 #include <QDebug>
 
-#define CandidatePair QPair<QSP<Node<Var, Res> >, int >
+#define CandidatePair QPair<QSP<Node>, int >
 
-template<typename Var, typename Res>
 class Node
 {
 public:
     Node() {}
     virtual ~Node() {}
 
-    virtual Res eval(Var var) = 0;
     virtual QString toString() = 0;
 
     int getDepth() { return depth; }
@@ -24,9 +22,9 @@ public:
     int getSize() { return size; }
 
     int getChildCount() { return children.length(); }
-    QSP<Node<Var, Res> > getChild(int i) {
+    QSP<Node> getChild(int i) {
         if (i < 0 || i >= getChildCount())
-            return QSP<Node<Var, Res> >();
+            return QSP<Node>();
         return children.at(i);
     }
 
@@ -34,43 +32,43 @@ public:
         updateStats(0);
     }
 
-    void setChild(int i, QSP<Node<Var, Res> > node) {
+    void setChild(int i, QSP<Node> node) {
         if (i < 0 || i >= getChildCount())
             return;
         children[i] = node;
     }
 
-    static QSP<Node<Var, Res> > mutate(QSP<Node<Var, Res> > node)
+    static QSP<Node> mutate(QSP<Node> node)
     {
         int i = RAND_INT(node->getSize());
         if (node->getSize() <= 1 || i == 0) {
-            QSP<Node<Var, Res> > tree = node->generateSubtree(RAND_INT(MAX_HEIGHT));
+            QSP<Node> tree = node->generateSubtree(RAND_INT(MAX_HEIGHT));
             tree->updateStats();
             return tree;
         }
 
-        QSP<Node<Var, Res> > cloned = clone(node);
+        QSP<Node> cloned = clone(node);
         CandidatePair candidate;
         getCandidate(candidate, cloned, cloned, 0, i);
         int maxHeight = MAX_HEIGHT - candidate.first->getDepth();
         if (maxHeight <= 0)
-            return QSP<Node<Var, Res> >();
+            return QSP<Node>();
         maxHeight = RAND_INT(maxHeight);
         candidate.first->children[candidate.second] = node->generateSubtree(maxHeight);
         cloned->updateStats();
         return cloned;
     }
 
-    static QSP<Node<Var, Res> > crossover(QSP<Node<Var, Res> > n1, QSP<Node<Var, Res> > n2)
+    static QSP<Node> crossover(QSP<Node> n1, QSP<Node> n2)
     {
-        QSP<Node<Var, Res> > cloned = clone(n1);
+        QSP<Node> cloned = clone(n1);
         CandidatePair c1, c2;
 
         int rand1, rand2, orig1, orig2, attempts = 0;
 
         while(true) {
             if (++attempts > 50)
-                return QSP<Node<Var, Res> >();
+                return QSP<Node>();
             orig1 = rand1 = RAND_INT(cloned->getSize());
             orig2 = rand2 = RAND_INT(n2->getSize());
             if (rand1 == 0 && rand2 == 0)
@@ -114,10 +112,10 @@ public:
 
 
 protected:
-    QList<QSharedPointer<Node<Var, Res> > > children;
+    QList<QSharedPointer<Node> > children;
 
-    virtual Node<Var, Res> *copy() = 0;
-    virtual QSP<Node<Var, Res> > generateSubtree(int maxHeight) = 0;
+    virtual Node* copy() = 0;
+    virtual QSP<Node> generateSubtree(int maxHeight) = 0;
 
 private:
     void updateStats(int depth)
@@ -133,28 +131,28 @@ private:
         height = maxHeight + 1;
     }
 
-    static void getCandidate(CandidatePair &pair, QSP<Node<Var, Res> > &parent, QSP<Node<Var, Res> > &me, int childNum, int &i)
+    static void getCandidate(CandidatePair &pair, QSP<Node> &parent, QSP<Node> &me, int childNum, int &i)
     {
         if (i-- <= 0) {
             pair = CandidatePair(parent, childNum);
             return;
         }
-        QSP<Node<Var, Res> > child;
+        QSP<Node> child;
         for (int j = 0; j < me->children.length() && i > -1; j++) {
             child = me->children.at(j);
             getCandidate(pair, me, child, j, i);
         }
     }
 
-    static QSP<Node<Var, Res> > clone(QSP<Node<Var, Res> > source)
+    static QSP<Node> clone(QSP<Node> source)
     {
-        Node<Var, Res> *copied = source->copy();
+        Node *copied = source->copy();
         copied->depth = source->depth;
         copied->height = source->height;
         copied->size = source->size;
         for (int i = 0; i < source->children.length(); i++)
             copied->children.append(clone(source->children.at(i)));
-        return QSP<Node<Var, Res> >(copied);
+        return QSP<Node>(copied);
     }
 
     int depth;

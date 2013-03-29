@@ -32,7 +32,6 @@ public:
     static void setDecay(double decay);
 
 private:
-    void redraw();
 
     QSP<Food> food;
     bool anthill;

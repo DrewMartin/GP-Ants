@@ -16,7 +16,7 @@ SingleArgNode::SingleArgNode(SingleArgOp operation) :
 
 double SingleArgNode::eval(double var)
 {
-    return operation(children.at(0)->eval(var));
+    return operation(children.at(0).staticCast<MathNode>()->eval(var));
 }
 
 QString SingleArgNode::toString()

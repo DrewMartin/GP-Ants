@@ -18,14 +18,10 @@ public:
     int getStrength() const;
 
 private:
-    void redraw();
 
     int strength;
     const int maxStrength;
     double decayRate;
-    QColor color;
-//    QRadialGradient gradient;
-    QGraphicsRectItem *rect;
 };
 
 #endif // PHEREMONE_H

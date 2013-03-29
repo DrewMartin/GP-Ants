@@ -61,19 +61,19 @@ void Part2Window::start()
     scene = QSharedPointer<QGraphicsScene>(new QGraphicsScene());
 
     int pointCount = ui->pointsSlider->value();
-    double minY = -target->eval(MIN_X), maxY = minY;
-    double prevX = MIN_X, prevY = minY;
+    double minY = -target->eval(MIN_GRAPH_X), maxY = minY;
+    double prevX = MIN_GRAPH_X, prevY = minY;
     bestPoints.clear();
-    bestPoints.append(QPointF(MIN_X, -minY));
-    double step = (MAX_X - MIN_X) / pointCount;
-    double nextPointAt = MIN_X + step * bestPoints.length();
+    bestPoints.append(QPointF(MIN_GRAPH_X, -minY));
+    double step = (MAX_GRAPH_X - MIN_GRAPH_X) / pointCount;
+    double nextPointAt = MIN_GRAPH_X + step * bestPoints.length();
 
     QBrush brush(Qt::blue);
     QPen pen(brush, 0);
     brush = QBrush(Qt::green);
     QPen bestPen(brush, 0);
     double res;
-    for (double x = MIN_X + STEP_SIZE; x <= MAX_X; x += STEP_SIZE) {
+    for (double x = MIN_GRAPH_X + STEP_SIZE; x <= MAX_GRAPH_X; x += STEP_SIZE) {
         res = -target->eval(x);
         scene->addLine(prevX, prevY, x, res, pen);
         bestLines.append(scene->addLine(prevX, prevY, x, res, bestPen));
@@ -85,7 +85,7 @@ void Part2Window::start()
             maxY = res;
         if (bestPoints.length() < pointCount && nextPointAt <= x) {
             bestPoints.append(QPointF(x, -res));
-            nextPointAt = MIN_X + step * bestPoints.length();
+            nextPointAt = MIN_GRAPH_X + step * bestPoints.length();
         }
     }
 
@@ -93,13 +93,13 @@ void Part2Window::start()
     maxY *= 1.05;
     brush = QBrush(Qt::black);
     pen = QPen(brush, 0);
-    scene->addLine(MIN_X, 0, MAX_X, 0, pen)->setZValue(-1);
+    scene->addLine(MIN_GRAPH_X, 0, MAX_GRAPH_X, 0, pen)->setZValue(-1);
     scene->addLine(0, minY, 0, maxY, pen)->setZValue(-1);
 
-    scene->setSceneRect(MIN_X, minY, MAX_X - MIN_X, maxY - minY);
+    scene->setSceneRect(MIN_GRAPH_X, minY, MAX_GRAPH_X - MIN_GRAPH_X, maxY - minY);
     ui->graphicsView->setScene(scene.data());
 
-    ui->graphicsView->scale(ui->graphicsView->width()/(MAX_X - MIN_X), ui->graphicsView->height()/(maxY - minY));
+    ui->graphicsView->scale(ui->graphicsView->width()/(MAX_GRAPH_X - MIN_GRAPH_X), ui->graphicsView->height()/(maxY - minY));
     generatePop();
     stopNow = false;
     gen = 0;
@@ -248,10 +248,10 @@ void Part2Window::updateLoop()
 
         if (hash != bestHash){
             bestHash = hash;
-            prevX = MIN_X;
-            prevY = -bestNode->eval(MIN_X);
+            prevX = MIN_GRAPH_X;
+            prevY = -bestNode->eval(MIN_GRAPH_X);
             i = 0;
-            for (x = MIN_X + STEP_SIZE; x <= MAX_X; x += STEP_SIZE, i++) {
+            for (x = MIN_GRAPH_X + STEP_SIZE; x <= MAX_GRAPH_X; x += STEP_SIZE, i++) {
                 curr = -bestNode->eval(x);
                 if (isnan(curr))
                     curr = 9999999999999.0;
@@ -294,7 +294,7 @@ void Part2Window::createWorkers()
 void Part2Window::workerFunction()
 {
     int task;
-    QSP<Node<double, double> > tempNode;
+    QSP<Node> tempNode;
     QSP<MathNode> n1, n2;
     while (true) {
         task = work.take();
