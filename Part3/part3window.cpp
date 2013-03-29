@@ -337,7 +337,7 @@ void Part3Window::GPFunction()
             return;
         nextPop.append(nextGen.takeList());
         pop = nextPop;
-        qDebug() << "Took" << timer.elapsed() << "ms for gen" << gen;
+        qDebug() << "Took" << timer.elapsed() << "ms for gen" << gen << "best score of" << bestBehaviour->getScore();
     }
     stop();
 }
