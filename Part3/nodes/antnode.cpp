@@ -53,16 +53,6 @@ QSharedPointer<Node> AntNode::generateSubtree(int maxHeight)
     return generateTree(maxHeight, false);
 }
 
-void AntNode::dropFoodAfterMove(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt> &ant)
-{
-    if (!ant->antHasFood())
-        return;
-
-    QPoint p = ant->getLocation();
-    if (cells[p.y()][p.x()].atAnthill())
-        ant->dropFood();
-}
-
 #define TWO_ARGS generateTree(height -  1, full), generateTree(height -  1, full)
 #define ONE_ARG generateTree(height -  1, full)
 

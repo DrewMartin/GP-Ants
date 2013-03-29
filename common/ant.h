@@ -18,14 +18,15 @@ public:
 
     Direction getDirection() const;
 
-    void moveTo(QPoint &p);
-    void moveRandom();
     QPoint pointAfterForwardMove(Direction dir);
 
     void takeFood();
     void dropFood();
 
 protected:
+    void moveTo(QPoint &p);
+    void moveRandom();
+
     const QPoint initialLocation;
 
     QGraphicsEllipseItem *ellipse;

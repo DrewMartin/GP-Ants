@@ -23,7 +23,6 @@ public:
 
 protected:
     virtual QSP<Node> generateSubtree(int maxHeight);
-    void dropFoodAfterMove(QList<QList<Cell> > &cells, const QSP<GPAnt> &ant);
 
 private:
     static QSP<AntNode> generateTree(int height, bool full);

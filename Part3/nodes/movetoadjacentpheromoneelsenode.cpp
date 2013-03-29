@@ -24,9 +24,8 @@ void MoveToAdjacentPheromoneElseNode::eval(QList<QList<Cell> > &cells, const QSP
         antDir = directionAfterLeftTurn(antDir);
     else if (rightPh > straightPh)
         antDir = directionAfterRightTurn(antDir);
-    p = ant->pointAfterForwardMove(antDir);
-    ant->moveTo(p);
-    dropFoodAfterMove(cells, ant);
+
+    ant->setDirection(antDir);
 }
 
 QString MoveToAdjacentPheromoneElseNode::toString()

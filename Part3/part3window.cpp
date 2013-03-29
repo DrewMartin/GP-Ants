@@ -116,11 +116,15 @@ void Part3Window::stop()
 {
 
     if (running) {
+        running = false;
         graphicSim->stop();
     } else if (runningGP) {
+        runningGP = false;
         ui->stopButton->setEnabled(false);
         ui->stopButton->setText("Working");
         int threads = QThread::idealThreadCount() - 1;
+        counter.force();
+        nextGen.force();
         work.clear();
         for (int i = 0; i < threads; i++) {
             work.put(WORK_QUIT);
@@ -129,7 +133,6 @@ void Part3Window::stop()
         ui->stopButton->setText("Stop");
     }
 
-    running = runningGP = false;
     setWidgetsEnabled(true);
 }
 
@@ -137,6 +140,7 @@ void Part3Window::startDisplay()
 {
     running = true;
     setWidgetsEnabled(false);
+    qDebug() << "Best behaviour" << bestBehaviour->toString();
     graphicSim->setBehaviour(bestBehaviour);
     QtConcurrent::run(graphicSim.data(), &Simulation::run);
 }
@@ -184,9 +188,8 @@ void Part3Window::generatePop()
     QString hash;
     QSet<QString> popAlready;
     popAlready.reserve(ANT_POP_SIZE);
-    int each = ANT_POP_SIZE /((MAX_HEIGHT - 1)*2);
     for(int i = 2; i <= MAX_HEIGHT; i++) {
-        for (int j = 0; j < each; j++) {
+        for (int j = 0; j < ANT_POP_STEP; j++) {
             while (true) {
                 tree = AntNode::generateFullTree(i);
                 hash = tree->toString();
@@ -266,12 +269,16 @@ void Part3Window::workerFunction()
             }
         } else {
             if (pop.at(task)->isScored()) {
+                if (pop.at(task)->getScore() > 2000)
+                    qDebug() << "Already scored" << pop.at(task)->getScore();
                 counter.increment();
             } else {
                 sim = new Simulation(MAX_TURNS);
                 sim->setBehaviour(pop.at(task));
                 sim->run();
                 pop.at(task)->setScore(sim->getScore());
+                if (pop.at(task)->getScore() > 2000)
+                    qDebug() << "New score scored" << pop.at(task)->getScore();
                 counter.increment();
                 delete sim;
             }
@@ -301,11 +308,13 @@ void Part3Window::GPFunction()
     while (runningGP && gen < maxGen) {
         timer.start();
         nextGen.clear();
-
+        counter.reset();
         for (i = 0; i < ANT_POP_SIZE; i++) {
             work.put(i);
         }
         counter.wait();
+        if (!runningGP)
+            return;
 
         gen++;
         qSort(pop.begin(), pop.end(), comparator);
@@ -324,9 +333,11 @@ void Part3Window::GPFunction()
             work.put(WORK_GEN);
         }
         nextGen.waitOnSize(ANT_POP_SIZE - nextPop.length());
+        if (!runningGP)
+            return;
         nextPop.append(nextGen.takeList());
         pop = nextPop;
-        qDebug() << "Took" << timer.elapsed() << "for gen" << gen;
+        qDebug() << "Took" << timer.elapsed() << "ms for gen" << gen;
     }
     stop();
 }

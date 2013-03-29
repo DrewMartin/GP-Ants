@@ -21,3 +21,16 @@ void BlockingCounter::increment()
     if (curr >= count)
         waiting.wakeAll();
 }
+
+void BlockingCounter::force()
+{
+    QMutexLocker locker(&mutex);
+    curr = count;
+    waiting.wakeAll();
+}
+
+void BlockingCounter::reset()
+{
+    QMutexLocker locker(&mutex);
+    curr = 0;
+}

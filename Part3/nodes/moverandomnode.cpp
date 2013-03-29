@@ -4,10 +4,9 @@ MoveRandomNode::MoveRandomNode()
 {
 }
 
-void MoveRandomNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt> &ant)
+void MoveRandomNode::eval(QList<QList<Cell> > &/*cells*/, const QSharedPointer<GPAnt> &ant)
 {
-    ant->moveRandom();
-    dropFoodAfterMove(cells, ant);
+    ant->turnRandom();
 }
 
 QString MoveRandomNode::toString()

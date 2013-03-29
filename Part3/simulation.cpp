@@ -31,6 +31,16 @@ void Simulation::setScene(QSharedPointer<QGraphicsScene> scene)
     this->scene = scene;
 }
 
+void Simulation::dropFoodAfterMove(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt> &ant)
+{
+    if (!ant->antHasFood())
+        return;
+
+    QPoint p = ant->getLocation();
+    if (cells[p.y()][p.x()].atAnthill())
+        ant->dropFood();
+}
+
 void Simulation::run()
 {
     if (behaviour.isNull())
@@ -69,6 +79,8 @@ void Simulation::run()
         for (i = 0; i < ants.length(); i++) {
             hadFood = ants.at(i)->antHasFood();
             behaviour->eval(cells, ants.at(i));
+            ants.at(i)->moveForward();
+            dropFoodAfterMove(cells, ants.at(i));
             if (ants.at(i)->antHasFood())
                 anyAntHasFood = true;
             else if (hadFood)

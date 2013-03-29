@@ -12,7 +12,9 @@ public:
     bool antHasFood();
 
     void setDirection(Direction dir);
+    void moveForward();
 
+    void turnRandom();
 };
 
 #endif // GPANT_H

@@ -26,6 +26,7 @@ public:
     void preClear();
     void reset();
 private:
+    void dropFoodAfterMove(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt> &ant);
     QSP<QGraphicsScene> scene;
     QSP<AntNode> behaviour;
     QList<QSP<Food> > food;

@@ -14,8 +14,9 @@
 #define XOVER_PROB 90
 
 #define POP_SIZE 1000
-#define ANT_POP_SIZE 100
+#define ANT_POP_STEP 5
 #define MAX_HEIGHT 11
+#define ANT_POP_SIZE (ANT_POP_STEP*(MAX_HEIGHT-1)*2)
 #define TOURNAMENT_SIZE 8
 #define PRECISION 0.001
 

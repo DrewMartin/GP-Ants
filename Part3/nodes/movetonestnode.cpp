@@ -26,9 +26,6 @@ void MoveToNestNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt
     }
 
     ant->setDirection(newDir);
-    p = ant->pointAfterForwardMove(newDir);
-    ant->moveTo(p);
-    dropFoodAfterMove(cells, ant);
 }
 
 QString MoveToNestNode::toString()

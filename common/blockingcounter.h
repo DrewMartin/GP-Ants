@@ -12,6 +12,8 @@ public:
 
     void wait();
     void increment();
+    void force();
+    void reset();
 
 private:
     const int count;
