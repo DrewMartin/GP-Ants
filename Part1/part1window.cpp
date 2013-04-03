@@ -103,13 +103,16 @@ void Part1Window::reset()
         for(int col = 0; col < MAX_Y; col++)
             cells[row][col].reset();
 
+    QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
+    background.fill(Qt::white);
+    scene->setBackgroundBrush(background);
+
 }
 
 void Part1Window::start()
 {
     setWidgestEnabled(false);
     ants.clear();
-    pheremones.clear();
     QSP<SmartAnt> ant;
     QPoint p;
 

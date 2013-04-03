@@ -1,0 +1,32 @@
+Turns taken to collect all the food
+
+300 food, 100 ants, 0.95 decay, 5 radius:
+    with pheromone:
+        462
+        508
+        413
+        512
+        400
+
+    without pheromone:
+        1750
+        1652
+        1747
+        1722
+        1641
+
+
+500 food, 500 ants, 0.95 decay, 5 radius:
+    with pheromone:
+        194
+        185
+        169
+        169
+        208
+
+    without pheromone:
+        382
+        413
+        439
+        457
+        434

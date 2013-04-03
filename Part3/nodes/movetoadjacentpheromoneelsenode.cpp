@@ -30,7 +30,7 @@ void MoveToAdjacentPheromoneElseNode::eval(QList<QList<Cell> > &cells, const QSP
 
 QString MoveToAdjacentPheromoneElseNode::toString()
 {
-    return QString("MoveToAdjacentPheromoneElse(%1)").arg(children.at(0)->toString());
+    return QString("%1(%2)").arg(MOVE_TO_PH_STRING).arg(children.at(0)->toString());
 }
 
 

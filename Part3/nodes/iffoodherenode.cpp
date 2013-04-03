@@ -17,7 +17,7 @@ void IfFoodHereNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt
 
 QString IfFoodHereNode::toString()
 {
-    return QString("IfFoodHere(%1, %2)").arg(children.at(0)->toString()).arg(children.at(1)->toString());
+    return QString("%1(%2, %3)").arg(IF_FOOD_HERE_STRING).arg(children.at(0)->toString()).arg(children.at(1)->toString());
 }
 
 

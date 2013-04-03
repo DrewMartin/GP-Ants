@@ -26,8 +26,8 @@ Ant::Ant(QPoint &location) :
 
 Ant::~Ant()
 {
-//    if (ellipse)
-//        delete ellipse;
+    if (ellipse)
+        delete ellipse;
 }
 
 QGraphicsItem *Ant::getGraphicsItem()

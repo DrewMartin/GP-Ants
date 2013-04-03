@@ -14,7 +14,7 @@ void PrognNode::eval(QList<QList<Cell> > &cells, const QSP<GPAnt> &ant)
 
 QString PrognNode::toString()
 {
-    return QString("Progn(%1, %2)").arg(children.at(0)->toString()).arg(children.at(1)->toString());
+    return QString("%1(%2, %3)").arg(PROGN_STRING).arg(children.at(0)->toString()).arg(children.at(1)->toString());
 }
 
 PrognNode *PrognNode::copy()

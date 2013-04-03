@@ -1,4 +1,4 @@
-#ifndef OPTIONS_H
+﻿#ifndef OPTIONS_H
 #define OPTIONS_H
 
 #include <QPair>
@@ -25,6 +25,7 @@ public:
     void addFood(QPoint loc, int amount);
     void clearFood();
 
+    int foodCount();
 private:
     Options();
 

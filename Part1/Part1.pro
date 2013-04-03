@@ -26,3 +26,6 @@ include(../common/common.pri)
 
 INCLUDEPATH += ../ \
     ../common
+
+OTHER_FILES += \
+    results.txt

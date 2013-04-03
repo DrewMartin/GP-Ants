@@ -51,9 +51,7 @@ private:
 
     QList<QSP<Food> > food;
     QList<QSP<SmartAnt> > ants;
-    QList<QSP<Pheremone> > pheremones;
     QList<QList<Cell> > cells;
-    uint lastTime;
     bool running;
     bool foodCleared;
     int turn;

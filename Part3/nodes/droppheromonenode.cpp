@@ -19,7 +19,7 @@ void DropPheromoneNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GP
 
 QString DropPheromoneNode::toString()
 {
-    return QString("DropPheromone");
+    return QString(DROP_STRING);
 }
 
 DropPheromoneNode *DropPheromoneNode::copy()

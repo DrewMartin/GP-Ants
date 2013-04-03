@@ -30,7 +30,7 @@ void MoveToNestNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt
 
 QString MoveToNestNode::toString()
 {
-    return "MoveToNest";
+    return MOVE_TO_NEST_STRING;
 }
 
 

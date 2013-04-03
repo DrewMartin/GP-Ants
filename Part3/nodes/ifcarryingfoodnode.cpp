@@ -21,7 +21,7 @@ void IfCarryingFoodNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<G
 
 QString IfCarryingFoodNode::toString()
 {
-    return QString("IfCarryingFood(%1, %2)").arg(children.at(0)->toString()).arg(children.at(1)->toString());
+    return QString("%1(%2, %3)").arg(IF_CARRYING_STRING).arg(children.at(0)->toString()).arg(children.at(1)->toString());
 }
 
 

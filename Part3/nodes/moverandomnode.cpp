@@ -11,7 +11,7 @@ void MoveRandomNode::eval(QList<QList<Cell> > &/*cells*/, const QSharedPointer<G
 
 QString MoveRandomNode::toString()
 {
-    return "MoveRandom";
+    return QString(MOVE_RAND_STRING);
 }
 
 

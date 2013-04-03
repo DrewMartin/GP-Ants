@@ -42,6 +42,8 @@ private slots:
     void start();
     void stop();
     void startDisplay();
+    void timerSlot();
+    void tryCustomBehaviour();
 
 private:
 
@@ -49,11 +51,11 @@ private:
     void generatePop();
     void workerFunction();
     void GPFunction();
+    void updateLoop();
     QSP<AntNode> tournamentSelect(QList<QSP<AntNode> > &popList);
 
     Ui::Part3Window *ui;
     QSP<QGraphicsScene> scene;
-    QSP<Simulation> graphicSim;
     QSP<AntNode> bestBehaviour;
     QList<QSP<AntNode> > pop;
     BlockingQueue<int> work;
@@ -63,6 +65,14 @@ private:
     bool running;
     bool runningGP;
     int gen;
+
+
+    // for running the sim on graphics
+    QList<QSP<Food> > food;
+    QList<QSP<GPAnt> > ants;
+    QList<QList<Cell> > cells;
+    bool foodCleared;
+    int turn;
 
 };
 

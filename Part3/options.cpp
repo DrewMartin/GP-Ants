@@ -11,6 +11,11 @@ Options::Options() :
 {
 }
 
+int Options::foodCount()
+{
+    return foodLocations.length();
+}
+
 Options* Options::getInstance()
 {
     if (!instance)

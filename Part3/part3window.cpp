@@ -2,11 +2,11 @@
 #include "ui_part3window.h"
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
+#include <QMessageBox>
 
 Part3Window::Part3Window(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Part3Window),
-    graphicSim(new Simulation()),
     counter(ANT_POP_SIZE),
     running(false),
     runningGP(false),
@@ -14,6 +14,18 @@ Part3Window::Part3Window(QWidget *parent) :
 {
     ui->setupUi(this);
     generatePop();
+
+    QPoint loc;
+    QList<Cell> thisRow;
+    for (int row = 0; row < MAX_Y; row++) {
+        thisRow = QList<Cell>();
+        for (int col = 0; col < MAX_X; col++) {
+            loc = QPoint(col, row);
+            thisRow.append(Cell(loc));
+        }
+        cells.append(thisRow);
+    }
+
     clear();
     ui->graphicsView->scale(SCALE, SCALE);
 
@@ -40,6 +52,7 @@ Part3Window::Part3Window(QWidget *parent) :
     connect(ui->startButton, SIGNAL(clicked()), SLOT(start()));
     connect(ui->stopButton, SIGNAL(clicked()), SLOT(stop()));
     connect(ui->startVisual, SIGNAL(clicked()), SLOT(startDisplay()));
+    connect(ui->behaviourButton, SIGNAL(clicked()), SLOT(tryCustomBehaviour()));
     setWidgetsEnabled(true);
 }
 
@@ -90,18 +103,43 @@ void Part3Window::elitismChanged(int val)
 
 void Part3Window::clear()
 {
-    graphicSim->preClear();
-    Options::getInstance()->clearFood();
+    for (int i = 0; i < MAX_X; i++) {
+        for(int j = 0; j < MAX_Y; j++) {
+            cells[j][i].clear();
+            cells[j][i].setScent((sq(MAX_X)/2 - sqDistance(MAX_X/2, MAX_Y/2, j, i))/((double)sq(MAX_X)/2.0));
+        }
+    }
+
+    ants.clear();
+    food.clear();
     scene = QSharedPointer<QGraphicsScene>(new QGraphicsScene(0, 0, MAX_X, MAX_Y));
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     ui->graphicsView->setScene(scene.data());
-    graphicSim->setScene(scene);
-    graphicSim->setupSim();
+
+    QPoint loc(MAX_X/2, MAX_Y/2);
+    CIRCLE_LOOP_HELPER(MAX_X/2, MAX_Y/2,ANTHILL_RAD)
+            cells[row][col].setAnthill();
+    QGraphicsEllipseItem *anthill = new QGraphicsEllipseItem(LOC_HELPER(loc, ANTHILL_RAD));
+    anthill->setPen(QPen(Qt::magenta));
+    anthill->setBrush(QBrush(Qt::magenta));
+    scene->addItem(anthill);
+    Options::getInstance()->clearFood();
+    setWidgetsEnabled(true);
 }
 
 void Part3Window::reset()
 {
-    graphicSim->reset();
+    ants.clear();
+    for (int i = 0; i < food.length(); i++)
+        food.at(i)->reset();
+
+    for (int row = 0; row < MAX_X; row++)
+        for(int col = 0; col < MAX_Y; col++)
+            cells[row][col].reset();
+
+    QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
+    background.fill(Qt::white);
+    scene->setBackgroundBrush(background);
 
 }
 
@@ -117,7 +155,6 @@ void Part3Window::stop()
 
     if (running) {
         running = false;
-        graphicSim->stop();
     } else if (runningGP) {
         runningGP = false;
         ui->stopButton->setEnabled(false);
@@ -141,8 +178,38 @@ void Part3Window::startDisplay()
     running = true;
     setWidgetsEnabled(false);
     qDebug() << "Best behaviour" << bestBehaviour->toString();
-    graphicSim->setBehaviour(bestBehaviour);
-    QtConcurrent::run(graphicSim.data(), &Simulation::run);
+    reset();
+    QSP<GPAnt> ant;
+    QPoint p;
+
+    double decay = ui->decaySlider->value() / 100.0;
+    Cell::setDecay(decay);
+    for (int i = 0; i < ui->antCountSlider->value(); i++) {
+        p = QPoint(MAX_X/2, MAX_Y/2);
+        ant = QSP<GPAnt>(new GPAnt(p));
+        ants.append(ant);
+        scene->addItem(ant->getGraphicsItem());
+    }
+    turn = 0;
+    foodCleared = false;
+    updateLoop();
+}
+
+void Part3Window::timerSlot()
+{
+    updateLoop();
+}
+
+void Part3Window::tryCustomBehaviour()
+{
+    QString text = ui->behaviourEdit->toPlainText();
+    try {
+        bestBehaviour = AntNode::fromString(text);
+        bestBehaviour->setScore(0);
+        setWidgetsEnabled(true);
+    } catch (...) {
+        QMessageBox::warning(this, "Bad behaviour string", "The entered behaviour string is invalid");
+    }
 }
 
 void Part3Window::mouseClick(QPoint point)
@@ -159,16 +226,21 @@ void Part3Window::mouseClick(QPoint point)
 
     if (!scene->collidingItems(item).length()) {
         Options::getInstance()->addFood(point, amount);
-        graphicSim->addFood(f);
-    }
+        food.append(f);
+        scene->addItem(item);
 
+
+        CIRCLE_LOOP_HELPER(point.x(), point.y(), FOOD_RAD)
+                cells[row][col].setFood(f);
+    }
+    setWidgetsEnabled(true);
 }
 
 void Part3Window::setWidgetsEnabled(bool enabled)
 {
     ui->resetButton->setEnabled(enabled);
     ui->clearButton->setEnabled(enabled);
-    ui->startButton->setEnabled(enabled);
+    ui->startButton->setEnabled(enabled && Options::getInstance()->foodCount() > 0);
     ui->startVisual->setEnabled(enabled && !bestBehaviour.isNull());
     ui->stopButton->setEnabled(!enabled);
 
@@ -178,6 +250,7 @@ void Part3Window::setWidgetsEnabled(bool enabled)
     ui->antCountSlider->setEnabled(enabled);
     ui->generationSlider->setEnabled(enabled);
     ui->elitismSlider->setEnabled(enabled);
+    ui->behaviourButton->setEnabled(enabled);
 }
 
 void Part3Window::generatePop()
@@ -239,7 +312,6 @@ void Part3Window::workerFunction()
     QSP<Node> tempNode;
     QSP<AntNode> n1, n2;
     Simulation *sim;
-    QTime timer;
     while (true) {
         task = work.take();
         if (task == WORK_QUIT)
@@ -269,16 +341,11 @@ void Part3Window::workerFunction()
             }
         } else {
             if (pop.at(task)->isScored()) {
-                if (pop.at(task)->getScore() > 2000)
-                    qDebug() << "Already scored" << pop.at(task)->getScore();
                 counter.increment();
             } else {
-                sim = new Simulation(MAX_TURNS);
-                sim->setBehaviour(pop.at(task));
+                sim = new Simulation(pop.at(task), MAX_TURNS);
                 sim->run();
                 pop.at(task)->setScore(sim->getScore());
-                if (pop.at(task)->getScore() > 2000)
-                    qDebug() << "New score scored" << pop.at(task)->getScore();
                 counter.increment();
                 delete sim;
             }
@@ -319,8 +386,10 @@ void Part3Window::GPFunction()
         gen++;
         qSort(pop.begin(), pop.end(), comparator);
 
-        if (bestBehaviour.isNull() || pop.at(0)->getScore() > bestBehaviour->getScore())
+        if (bestBehaviour.isNull() || pop.at(0)->getScore() > bestBehaviour->getScore()) {
             bestBehaviour = pop.at(0);
+            qDebug() << "New best" << bestBehaviour->toString();
+        }
         ui->currGeneration->setText(QString::number(gen));
         ui->bestFitness->setText(QString::number(bestBehaviour->getScore()));
 
@@ -340,4 +409,56 @@ void Part3Window::GPFunction()
         qDebug() << "Took" << timer.elapsed() << "ms for gen" << gen << "best score of" << bestBehaviour->getScore();
     }
     stop();
+}
+
+void Part3Window::updateLoop()
+{
+    if (!running)
+        return;
+
+    QTime timer;
+    timer.start();
+    int row, col, i;
+    QSP<GPAnt> curr;
+    QImage background(MAX_X, MAX_Y, QImage::Format_ARGB32_Premultiplied);
+    background.fill(Qt::white);
+    turn++;
+
+    for (row = 0; row < MAX_X; row++)
+        for(col = 0; col < MAX_Y; col++)
+            cells[row][col].update();
+
+    for (i = 0; i < ants.length(); i++) {
+        curr = ants.at(i);
+        bestBehaviour->eval(cells, curr);
+        curr->moveForward();
+
+        if (curr->antHasFood()) {
+            if (cells[curr->getLocation().y()][curr->getLocation().x()].atAnthill())
+                curr->dropFood();
+        }
+    }
+
+    for (row = 0; row < MAX_X; row++)
+        for(col = 0; col < MAX_Y; col++) {
+            i = (cells[row][col].getPheremone()*255/MAX_PHEROMONE) / (1.0 - cells[row][col].getScent());
+            background.setPixel(col, row, qRgba(0, i, 0, i));
+        }
+
+    if (!foodCleared) {
+        foodCleared = true;
+        for (i = 0; i < food.length(); i++) {
+            if (food.at(i)->hasFood()) {
+                foodCleared = false;
+                break;
+            }
+        }
+        if (foodCleared) {
+            qDebug() << "All food eaten after" << turn << "turns";
+        }
+    }
+
+    scene->setBackgroundBrush(background);
+
+    QTimer::singleShot(qMax(0, 33 - timer.elapsed()), this, SLOT(timerSlot()));
 }

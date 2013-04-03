@@ -16,14 +16,12 @@ SOURCES += main.cpp\
         part3window.cpp \
     simulation.cpp \
     options.cpp \
-    gpant.cpp \
-    gpworker.cpp
+    gpant.cpp
 
 HEADERS  += part3window.h \
     simulation.h \
     options.h \
-    gpant.h \
-    gpworker.h
+    gpant.h
 
 FORMS    += part3window.ui
 
@@ -35,4 +33,4 @@ INCLUDEPATH += ../ \
     nodes
 
 OTHER_FILES += \
-    nodes/nodes.pri
+    behaviours.txt

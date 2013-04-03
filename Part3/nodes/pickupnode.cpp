@@ -15,7 +15,7 @@ void PickUpNode::eval(QList<QList<Cell> > &cells, const QSharedPointer<GPAnt> &a
 
 QString PickUpNode::toString()
 {
-    return "PickupFood";
+    return PICKUP_STRING;
 }
 
 

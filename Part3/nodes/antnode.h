@@ -4,6 +4,7 @@
 #include "common/node.h"
 #include "common/cell.h"
 #include "gpant.h"
+#include "strings.h"
 
 class AntNode : public Node
 {
@@ -13,6 +14,7 @@ public:
 
     static QSP<AntNode> generateFullTree(int maxDepth);
     static QSP<AntNode> generateGrowTree(int maxDepth);
+    static QSP<AntNode> fromString(QString &source);
 
     virtual void eval(QList<QList<Cell> > &cells, const QSP<GPAnt> &ant) = 0;
 
@@ -20,6 +22,8 @@ public:
     bool isScored();
 
     void setScore(int val);
+
+
 
 protected:
     virtual QSP<Node> generateSubtree(int maxHeight);
